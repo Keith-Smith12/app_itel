@@ -1,16 +1,23 @@
 import { Link } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View,Image } from 'react-native';
 
 export default function WelcomePage() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo!</Text>
+     <Image
+      source={require('../../assets/images/ITEL_Logo.png')}
+    />
+     {/* <Text style={styles.title}>Bem-vindo!</Text>
       <Link href="/login" asChild>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>Começar</Text>
         </TouchableOpacity>
       </Link>
+      */}
     </View>
+
+      
+
   );
 }
 
