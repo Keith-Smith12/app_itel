@@ -8,7 +8,7 @@ export default function WelcomePage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       router.replace('/login'); // Redireciona para a página de login
-    }, 1000000); 
+    }, 2000); 
 
     
     return () => clearTimeout(timer);
