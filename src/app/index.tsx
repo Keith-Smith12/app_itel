@@ -1,13 +1,14 @@
 import { Link, router } from 'expo-router'; 
 import { StyleSheet, View, Image } from 'react-native';
 import { useEffect } from 'react'; 
+import {NoteCard} from '../components/card/NoteCard'
 
 export default function WelcomePage() {
   
   useEffect(() => {
     const timer = setTimeout(() => {
       router.replace('/login'); // Redireciona para a página de login
-    }, 2000); 
+    }, 1000000); 
 
     
     return () => clearTimeout(timer);
@@ -19,7 +20,13 @@ export default function WelcomePage() {
         source={require('../../assets/images/ITEL_Logo.png')}
         style={styles.image} 
       />
+     {/* <NoteCard subject="Matemática" p1={8.5} p2={7.0} mac={9.0} />*/} 
+
     </View>
+
+   
+
+  
   );
 }
 
