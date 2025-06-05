@@ -1,16 +1,32 @@
-import { Link } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Link, router } from 'expo-router'; 
+import { StyleSheet, View, Image } from 'react-native';
+import { useEffect } from 'react'; 
+import {NoteCard} from '../components/card/NoteCard'
 
 export default function WelcomePage() {
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.replace('/login'); // Redireciona para a página de login
+    }, 2000); 
+
+    
+    return () => clearTimeout(timer);
+  }, []); // Array vazio significa que o useEffect só roda uma vez, ao montar o componente
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo!</Text>
-      <Link href="/login" asChild>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Começar</Text>
-        </TouchableOpacity>
-      </Link>
+      <Image
+        source={require('../../assets/images/ITEL_Logo.png')}
+        style={styles.image} 
+      />
+     {/* <NoteCard subject="Matemática" p1={8.5} p2={7.0} mac={9.0} />*/} 
+
     </View>
+
+   
+
+  
   );
 }
 
@@ -20,21 +36,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#fff', 
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 30,
+  image: {
+    width: 200, 
+    height: 200,
+    resizeMode: 'contain', 
   },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-}); 
+});
