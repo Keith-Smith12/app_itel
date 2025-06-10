@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, StyleProp, ViewStyle } from 'react-native';
-import { SymbolView, SymbolViewProps, SymbolWeight } from 'expo-symbols';
+import { SymbolView } from 'expo-symbols';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 interface NoteCardProps {
   subject: string;
@@ -18,6 +18,10 @@ export function NoteCard({
 }: NoteCardProps) {
   const average = (p1 + p2 + mac) / 3;
 
+  const getGradeColor = (grade: number) => {
+    return '#007AFF';
+  };
+
   return (
     <View style={[styles.card, style]}>
       <View style={styles.header}>
@@ -30,26 +34,33 @@ export function NoteCard({
         />
         <Text style={styles.subject}>{subject}</Text>
       </View>
-      <View style={styles.content}>
-        <View style={styles.gradeRow}>
-          <View style={styles.gradeItem}>
-            <Text style={styles.label}>P1:</Text>
-            <Text style={styles.grade}>{p1.toFixed(1)}</Text>
-          </View>
-          <View style={[styles.gradeItem, styles.gradeItemRight]}>
-            <Text style={styles.label}>P2:</Text>
-            <Text style={styles.grade}>{p2.toFixed(1)}</Text>
-          </View>
+
+      <View style={styles.gradeRow}>
+        <View style={styles.gradeItem}>
+          <Text style={styles.label}>P1:</Text>
+          <Text style={[styles.grade, { color: getGradeColor(p1) }]}>
+            {p1.toFixed(1)}
+          </Text>
         </View>
-        <View style={styles.gradeRow}>
-          <View style={styles.gradeItem}>
-            <Text style={styles.label}>MAC:</Text>
-            <Text style={styles.grade}>{mac.toFixed(1)}</Text>
-          </View>
-          <View style={[styles.gradeItem, styles.gradeItemRight]}>
-            <Text style={styles.label}>Média:</Text>
-            <Text style={styles.grade}>{average.toFixed(1)}</Text>
-          </View>
+        <View style={[styles.gradeItem, styles.gradeItemRight]}>
+          <Text style={styles.label}>P2:</Text>
+          <Text style={[styles.grade, { color: getGradeColor(p2) }]}>
+            {p2.toFixed(1)}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.gradeRow}>
+        <View style={styles.gradeItem}>
+          <Text style={styles.label}>MAC:</Text>
+          <Text style={[styles.grade, { color: getGradeColor(mac) }]}>
+            {mac.toFixed(1)}
+          </Text>
+        </View>
+        <View style={[styles.gradeItem, styles.gradeItemRight]}>
+          <Text style={styles.label}>Média:</Text>
+          <Text style={[styles.grade, { color: getGradeColor(average) }]}>
+            {average.toFixed(1)}
+          </Text>
         </View>
       </View>
     </View>
@@ -59,7 +70,7 @@ export function NoteCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     margin: 8,
     shadowColor: '#000',
@@ -82,17 +93,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-  },
-  content: {
-    marginTop: 8,
-    width:200
+    flex: 1,
   },
   gradeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 8,
   },
-
   gradeItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -109,7 +116,6 @@ const styles = StyleSheet.create({
   },
   grade: {
     fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

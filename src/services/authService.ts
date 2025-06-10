@@ -1,54 +1,99 @@
-import api from './api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface LoginResponse {
-  // Add your response type here based on the API response
-  token?: string;
-  user?: any;
-  // Add other response fields as needed
+interface User {
+  id: number;
+  nome: string;
+  processo: string;
+  // Adicione outros campos do usuário conforme necessário
 }
 
+interface LoginResponse {
+  token: string;
+  user: User;
+  message?: string;
+}
+
+interface LoginData {
+  processo: string;
+  password: string;
+}
+
+// Chaves para o AsyncStorage
+const STORAGE_KEYS = {
+  TOKEN: '@auth_token',
+  USER: '@user_data'
+};
+
+// Credenciais fixas para desenvolvimento
+const DEV_CREDENTIALS = {
+  processo: "14451",
+  password: "1111"
+};
+
+// Usuário mockado para desenvolvimento
+const MOCK_USER: User = {
+  id: 1,
+  nome: "Usuário Teste",
+  processo: "14451"
+};
+
+// Token mockado
+const MOCK_TOKEN = "mock_token_desenvolvimento_local";
+
 class AuthService {
-  async login(processo: string, password: string): Promise<LoginResponse> {
-    try {
-      return await api.get<LoginResponse>(`/aluno/dados_actuais/${processo}/${password}`);
-    } catch (error) {
-      throw this.handleError(error);
+  async login(data: LoginData): Promise<LoginResponse> {
+    // Simula um delay pequeno para parecer mais real
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Verifica as credenciais localmente
+    if (data.processo === DEV_CREDENTIALS.processo && data.password === DEV_CREDENTIALS.password) {
+      const response: LoginResponse = {
+        token: MOCK_TOKEN,
+        user: MOCK_USER
+      };
+
+      await this.storeAuthData(response);
+      return response;
     }
+
+    throw new Error('Credenciais inválidas');
   }
 
   private handleError(error: any): Error {
-    if (error.status) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      return new Error(error.message || 'Erro no servidor');
-    }
-    // The request was made but no response was received
-    return new Error('Não foi possível conectar ao servidor');
+    return new Error(error.message || 'Erro no login');
   }
 
-  isAuthenticated(): boolean {
-    // Add your authentication check logic here
-    // For example, check if there's a valid token in localStorage
-    const token = localStorage.getItem('auth_token');
+  async isAuthenticated(): Promise<boolean> {
+    const token = await this.getToken();
     return !!token;
   }
 
-  logout(): void {
-    // Clear authentication data
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
+  async getToken(): Promise<string | null> {
+    return await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
   }
 
-  // Helper method to store authentication data
-  private storeAuthData(response: LoginResponse): void {
+  async getCurrentUser(): Promise<User | null> {
+    const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+    return userData ? JSON.parse(userData) : null;
+  }
+
+  async logout(): Promise<void> {
+    await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
+  }
+
+  private async storeAuthData(response: LoginResponse): Promise<void> {
+    const storagePromises = [];
+
     if (response.token) {
-      localStorage.setItem('auth_token', response.token);
+      storagePromises.push(AsyncStorage.setItem(STORAGE_KEYS.TOKEN, response.token));
     }
     if (response.user) {
-      localStorage.setItem('user_data', JSON.stringify(response.user));
+      storagePromises.push(AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user)));
     }
+
+    await Promise.all(storagePromises);
   }
 }
 
 export const authService = new AuthService();
-export default authService; 
+export default authService;

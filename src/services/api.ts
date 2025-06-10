@@ -1,7 +1,11 @@
-const BASE_URL = 'https://sge.itel.gov.ao/api/v1';
+const BASE_URL = 'http://192.168.20.31:8031/api';
 
 interface ApiError extends Error {
   status?: number;
+}
+
+export interface RequestConfig {
+  headers?: Record<string, string>;
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -10,30 +14,37 @@ async function handleResponse<T>(response: Response): Promise<T> {
     error.status = response.status;
     throw error;
   }
-  return response.json();
+  const data = await response.json();
+  return data.data || data; // Retorna data.data se existir, senão retorna data diretamente
 }
 
 const api = {
-  get: async <T>(endpoint: string): Promise<T> => {
+  get: async <T>(endpoint: string, config?: RequestConfig): Promise<T> => {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(config?.headers || {}),
+    };
+
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
     return handleResponse<T>(response);
   },
 
-  post: async <T>(endpoint: string, data?: any): Promise<T> => {
+  post: async <T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> => {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(config?.headers || {}),
+    };
+
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: data ? JSON.stringify(data) : undefined,
     });
     return handleResponse<T>(response);
   },
 };
 
-export default api; 
+export default api;
