@@ -35,6 +35,65 @@ npm run reset-project
 
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
+## Git & Commit Convention 🚀
+
+Este projeto utiliza **Git** para controle de versão e segue uma convenção de commits para manter o histórico limpo e compreensível.
+
+### Tipos de commit:
+
+- `feat`: Nova funcionalidade
+- `fix`: Correção de bug
+- `refactor`: Refatoração de código (melhoria sem alterar funcionalidade)
+- `docs`: Alterações na documentação
+- `style`: Formatação, sem alteração de código (espaços, ponto e vírgula, etc)
+- `test`: Adição ou ajuste de testes
+- `chore`: Tarefas de manutenção (build, dependências, etc)
+
+### Exemplos de mensagens de commit:
+
+```bash
+feat: tela de login com autenticação
+fix: corrigir bug no fluxo de logout
+refactor: extrair componente Header
+```
+
+### Fluxo de Branch e Pull Request
+
+1. Sempre crie uma branch a partir da `dev`:
+   ```bash
+   git checkout dev
+   git pull origin dev
+   git checkout -b feat/nome-da-feature
+   ```
+2. Faça commits pequenos e frequentes.
+3. Ao terminar, suba sua branch:
+   ```bash
+   git push origin feat/nome-da-feature
+   ```
+4. Abra um Pull Request (PR) para a branch `dev` no GitHub.
+5. Aguarde revisão e aprovação do PR.
+6. Após aprovação, faça o merge do PR na `dev`.
+
+#### Exemplo de fluxo visual (Mermaid):
+
+```mermaid
+flowchart TD
+    A[dev] -->|cria branch| B(feat/nova-tela)
+    B -->|commits| C{Push}
+    C -->|Abre PR| D[Pull Request]
+    D -->|Revisão| E{Aprovado?}
+    E -- Sim --> F[Merge na dev]
+    E -- Não --> G[Ajusta código]
+    G --> C
+```
+
+### Dicas para usar o Git:
+
+- Sempre crie uma branch para cada feature ou correção.
+- Faça commits pequenos e frequentes.
+- Use mensagens claras e objetivas seguindo a convenção acima.
+- Antes de abrir um Pull Request, garanta que está na branch correta e que o código está testado.
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:
@@ -48,4 +107,5 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
 # app_itel
