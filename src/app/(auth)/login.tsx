@@ -1,18 +1,24 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { authService } from '../../services/authService';
 
 export default function LoginPage() {
-  const [processo, setProcesso] = useState('14451');
-  const [password, setPassword] = useState('1111');
+  const [processo, setProcesso] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    if (!processo.trim() || !password.trim()) {
+      Alert.alert('Atenção', 'Preencha todos os campos.');
+      return;
+    }
     try {
       setLoading(true);
       const response = await authService.login({
-        processo: processo.trim(),
+        it_agent: processo.trim(),
         password: password.trim()
       });
 
@@ -26,18 +32,13 @@ export default function LoginPage() {
     }
   };
 
-  // Login automático após carregar a página
-  useEffect(() => {
-    handleLogin();
-  }, []);
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Número do Processo"
+        placeholder="Número do Processo (IT Agent)"
         value={processo}
         onChangeText={setProcesso}
         keyboardType="numeric"
@@ -45,14 +46,27 @@ export default function LoginPage() {
         editable={!loading}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        editable={!loading}
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={[styles.input, { flex: 1, marginBottom: 0 }]}
+          placeholder="Senha"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          editable={!loading}
+        />
+        <TouchableOpacity
+          style={styles.eyeButton}
+          onPress={() => setShowPassword((prev) => !prev)}
+          disabled={loading}
+        >
+          <MaterialCommunityIcons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={24}
+            color="#888"
+          />
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
         style={[styles.button, loading && styles.buttonDisabled]}
@@ -65,10 +79,6 @@ export default function LoginPage() {
           <Text style={styles.buttonText}>Entrar</Text>
         )}
       </TouchableOpacity>
-
-      <Text style={styles.helpText}>
-        Credenciais de desenvolvimento em uso
-      </Text>
     </View>
   );
 }
@@ -98,6 +108,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#F8F8F8',
   },
+  passwordContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 8,
+  },
   button: {
     backgroundColor: '#007AFF',
     width: '100%',
@@ -114,11 +138,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
-  },
-  helpText: {
-    marginTop: 20,
-    color: '#666',
-    textAlign: 'center',
-    fontSize: 14,
   },
 });

@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from "./api";
 
 interface User {
   id: number;
   nome: string;
   processo: string;
-  // Adicione outros campos do usuário conforme necessário
 }
 
 interface LoginResponse {
@@ -14,7 +14,7 @@ interface LoginResponse {
 }
 
 interface LoginData {
-  processo: string;
+  it_agent: string;
   password: string;
 }
 
@@ -24,39 +24,35 @@ const STORAGE_KEYS = {
   USER: '@user_data'
 };
 
-// Credenciais fixas para desenvolvimento
-const DEV_CREDENTIALS = {
-  processo: "14451",
-  password: "1111"
-};
-
-// Usuário mockado para desenvolvimento
-const MOCK_USER: User = {
-  id: 1,
-  nome: "Usuário Teste",
-  processo: "14451"
-};
-
-// Token mockado
-const MOCK_TOKEN = "mock_token_desenvolvimento_local";
-
 class AuthService {
   async login(data: LoginData): Promise<LoginResponse> {
-    // Simula um delay pequeno para parecer mais real
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      console.log('[AuthService] Iniciando login para it_agent:', data.it_agent);
 
-    // Verifica as credenciais localmente
-    if (data.processo === DEV_CREDENTIALS.processo && data.password === DEV_CREDENTIALS.password) {
-      const response: LoginResponse = {
-        token: MOCK_TOKEN,
-        user: MOCK_USER
-      };
-
-      await this.storeAuthData(response);
-      return response;
+      const response = await api.post('/auth/login', {
+        it_agent: data.it_agent,
+        password: data.password
+      });
+      console.log('[AuthService] Resposta da API:', response);
+      const dataResponse = response as { data: { user: User; token: string } };
+      const user: User = dataResponse.data.user;
+      const token: string = dataResponse.data.token;
+      const loginResponse: LoginResponse = { token, user };
+      await this.storeAuthData(loginResponse);
+      console.log('[AuthService] Login bem-sucedido, dados armazenados.');
+      return loginResponse;
+    } catch (error: any) {
+      console.error('[AuthService] Erro no login:', error, error?.response, JSON.stringify(error));
+      if (error && error.response) {
+        try {
+          const errorBody = await error.response.text?.();
+          console.error('[AuthService] Corpo da resposta de erro:', errorBody);
+        } catch (e) {
+          console.error('[AuthService] Falha ao ler corpo da resposta de erro:', e);
+        }
+      }
+      throw this.handleError(error);
     }
-
-    throw new Error('Credenciais inválidas');
   }
 
   private handleError(error: any): Error {
@@ -78,19 +74,24 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
+    try {
+      await api.post('/auth/logout');
+      await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
+      console.log('[AuthService] Logout realizado com sucesso.');
+    } catch (error: any) {
+      console.error('[AuthService] Erro no logout:', error, error?.response, JSON.stringify(error));
+      throw this.handleError(error);
+    }
   }
 
   private async storeAuthData(response: LoginResponse): Promise<void> {
     const storagePromises = [];
-
     if (response.token) {
       storagePromises.push(AsyncStorage.setItem(STORAGE_KEYS.TOKEN, response.token));
     }
     if (response.user) {
       storagePromises.push(AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user)));
     }
-
     await Promise.all(storagePromises);
   }
 }
