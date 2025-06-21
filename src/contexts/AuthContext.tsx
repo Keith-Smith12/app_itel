@@ -9,7 +9,6 @@ interface User {
 
 interface AuthContextData {
   user: User | null;
-  token: string | null;
   loading: boolean;
   error: string | null;
   login: (it_agent: string, password: string) => Promise<void>;
@@ -20,20 +19,16 @@ const AuthContext = createContext<AuthContextData | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Tenta restaurar sessão ao iniciar
     const loadAuthData = async () => {
       setLoading(true);
       try {
         const storedUser = await authService.getCurrentUser();
-        const storedToken = await authService.getToken();
-        if (storedUser && storedToken) {
+        if (storedUser) {
           setUser(storedUser);
-          setToken(storedToken);
         }
       } finally {
         setLoading(false);
@@ -48,11 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authService.login({ it_agent, password });
       setUser(response.user);
-      setToken(response.token);
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login');
       setUser(null);
-      setToken(null);
     } finally {
       setLoading(false);
     }
@@ -64,7 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authService.logout();
       setUser(null);
-      setToken(null);
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer logout');
     } finally {
@@ -73,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, error, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

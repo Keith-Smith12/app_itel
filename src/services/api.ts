@@ -1,4 +1,4 @@
-const BASE_URL = 'https://sge.mucua.ao/api/v1';
+const BASE_URL = 'https://sge.itel.gov.ao/api/v1';
 
 interface ApiError extends Error {
   status?: number;
@@ -15,13 +15,14 @@ async function handleResponse<T>(response: Response): Promise<T> {
     throw error;
   }
   const data = await response.json();
-  return data.data || data; // Retorna data.data se existir, senão retorna data diretamente
+  return data;
 }
 
 const api = {
   get: async <T>(endpoint: string, config?: RequestConfig): Promise<T> => {
     const headers = {
       'Content-Type': 'application/json',
+      'Authorization': 'Basic ghp_T9YetzgqsrJAwqIVJjeAiMWjfTMJ0z055Ywk',
       ...(config?.headers || {}),
     };
 
@@ -35,6 +36,7 @@ const api = {
   post: async <T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> => {
     const headers = {
       'Content-Type': 'application/json',
+      'Authorization': 'Basic ghp_T9YetzgqsrJAwqIVJjeAiMWjfTMJ0z055Ywk',
       ...(config?.headers || {}),
     };
 
