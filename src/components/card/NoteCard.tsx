@@ -1,31 +1,40 @@
+// app_itel/src/components/card/NoteCard.tsx
 import { SymbolView } from 'expo-symbols';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 interface NoteCardProps {
   subject: string;
-  p1: number;
-  p2: number;
-  mac: number;
+  p1: number | string;
+  p2: number | string;
+  mac: number | string;
   style?: StyleProp<ViewStyle>;
 }
 
-export function NoteCard({
-  subject,
-  p1,
-  p2,
-  mac,
-  style,
-}: NoteCardProps) {
-  const average = (p1 + p2 + mac) / 3;
+export function NoteCard({ subject, p1, p2, mac, style }: NoteCardProps) {
+  const validNumbers = [p1, p2, mac]
+    .map(val => (typeof val === 'number' ? val : 0))
+    .filter(val => val !== 0);
+  const average = validNumbers.length > 0 ? validNumbers.reduce((sum, val) => sum + val, 0) / validNumbers.length : 0;
 
-  const getGradeColor = (grade: number) => {
-    return '#007AFF';
+  const getGradeColor = (grade: number | string) => {
+    if (typeof grade === 'number') {
+      return grade >= 10 ? '#007AFF' : '#FF3B30';
+    }
+    return '#666'; // "nnl" color
+  };
+
+  const formatGrade = (grade: number | string) => {
+    if (typeof grade === 'number') {
+      return grade.toFixed(1);
+    }
+    return grade === 'nnl' ? 'Não lançada' : grade; 
   };
 
   return (
     <View style={[styles.card, style]}>
       <View style={styles.header}>
-        <SymbolView
+        <SymbolView    return grade === 'nnl' ? 'nnl' : grade; 
+
           name="book.fill"
           weight="regular"
           tintColor="#000"
@@ -39,13 +48,13 @@ export function NoteCard({
         <View style={styles.gradeItem}>
           <Text style={styles.label}>P1:</Text>
           <Text style={[styles.grade, { color: getGradeColor(p1) }]}>
-            {p1.toFixed(1)}
+            {formatGrade(p1)}
           </Text>
         </View>
         <View style={[styles.gradeItem, styles.gradeItemRight]}>
           <Text style={styles.label}>P2:</Text>
           <Text style={[styles.grade, { color: getGradeColor(p2) }]}>
-            {p2.toFixed(1)}
+            {formatGrade(p2)}
           </Text>
         </View>
       </View>
@@ -53,7 +62,7 @@ export function NoteCard({
         <View style={styles.gradeItem}>
           <Text style={styles.label}>MAC:</Text>
           <Text style={[styles.grade, { color: getGradeColor(mac) }]}>
-            {mac.toFixed(1)}
+            {formatGrade(mac)}
           </Text>
         </View>
         <View style={[styles.gradeItem, styles.gradeItemRight]}>
