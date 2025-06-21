@@ -33,8 +33,7 @@ export function NoteCard({ subject, p1, p2, mac, style }: NoteCardProps) {
   return (
     <View style={[styles.card, style]}>
       <View style={styles.header}>
-        <SymbolView    return grade === 'nnl' ? 'nnl' : grade; 
-
+        <SymbolView
           name="book.fill"
           weight="regular"
           tintColor="#000"
