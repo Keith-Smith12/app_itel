@@ -1,4 +1,3 @@
-// app_itel/src/app/(app)/perfil.tsx
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import React from 'react';
@@ -6,37 +5,50 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
-import { useAuth } from '../../contexts/AuthContext';
 
 export default function Perfil() {
   const navigation = useNavigation();
-  const { user } = useAuth();
 
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
-  if (!user) {
-    return (
-      <ThemedView style={styles.container}>
-        <Header title="" showBackButton={false} onMenuPress={handleMenuPress} />
-        <View style={styles.centerContent}>
-          <ThemedText>Usuário não autenticado</ThemedText>
-        </View>
-      </ThemedView>
-    );
-  }
+  // Dados do estudante
+  const estudante = {
+    nome: "Isabel Sapuile Solendo",
+    matricula: "14333",
+    dataNascimento: "22/01/2006",
+    naturalidade: "VIANA",
+    provincia: "Luanda",
+    nomePai: "PINDALI EMÍDIO",
+    nomeMae: "FERNANDA GAMOS SOLENDO",
+    estadoCivil: "Solteiro(a)",
+    genero: "Feminino",
+    telefone: "923 619 194",
+    email: "pindali.emidio@mtti.gov.ao",
+    residencia: "KILAMBA",
+    bi: "007939052LA046",
+    curso: "Técnico de Informática",
+    anoLectivo: "2024-2025",
+    turma: "A 2",
+    turno: "MANHÃ"
+  };
 
   return (
     <ThemedView style={styles.container}>
-      <Header title="" showBackButton={false} onMenuPress={handleMenuPress} />
+      <Header
+        title=""
+        showBackButton={false}
+        onMenuPress={handleMenuPress}
+      />
+
       <ScrollView style={styles.content}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
             <MaterialCommunityIcons name="account-circle" size={100} color="#007AFF" />
           </View>
-          <ThemedText style={styles.name}>{user.nome}</ThemedText>
-          <ThemedText style={styles.matricula}>Matrícula: {user.processo}</ThemedText>
+          <ThemedText style={styles.name}>{estudante.nome}</ThemedText>
+          <ThemedText style={styles.matricula}>Matrícula: {estudante.matricula}</ThemedText>
         </View>
 
         <View style={styles.infoSection}>
@@ -49,7 +61,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="calendar" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Data de Nascimento</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.dataNascimento}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.dataNascimento}</ThemedText>
             </View>
           </View>
 
@@ -57,9 +69,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="map-marker" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Naturalidade</ThemedText>
-              <ThemedText style={styles.infoValue}>
-                {user.naturalidade}, {user.provincia}
-              </ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.naturalidade}, {estudante.provincia}</ThemedText>
             </View>
           </View>
 
@@ -67,7 +77,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="account-group" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Nome do Pai</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.nomePai}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.nomePai}</ThemedText>
             </View>
           </View>
 
@@ -75,7 +85,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="account-group" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Nome da Mãe</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.nomeMae}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.nomeMae}</ThemedText>
             </View>
           </View>
 
@@ -88,7 +98,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="book" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Curso</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.curso}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.curso}</ThemedText>
             </View>
           </View>
 
@@ -96,7 +106,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="calendar-clock" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Ano Lectivo</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.anoLectivo}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.anoLectivo}</ThemedText>
             </View>
           </View>
 
@@ -104,9 +114,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="account-group" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Turma</ThemedText>
-              <ThemedText style={styles.infoValue}>
-                {user.turma} - {user.turno}
-              </ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.turma} - {estudante.turno}</ThemedText>
             </View>
           </View>
 
@@ -119,7 +127,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="email" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Email</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.email}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.email}</ThemedText>
             </View>
           </View>
 
@@ -127,7 +135,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="phone" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Telefone</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.telefone}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.telefone}</ThemedText>
             </View>
           </View>
 
@@ -135,7 +143,7 @@ export default function Perfil() {
             <MaterialCommunityIcons name="home" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Residência</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.residencia}</ThemedText>
+              <ThemedText style={styles.infoValue}>{estudante.residencia}</ThemedText>
             </View>
           </View>
         </View>
@@ -151,11 +159,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   profileHeader: {
     alignItems: 'center',

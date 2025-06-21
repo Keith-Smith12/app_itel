@@ -1,3 +1,4 @@
+// app_itel/src/contexts/AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 
@@ -24,9 +25,9 @@ interface User {
 
 interface AuthContextData {
   user: User | null;
+  loading: boolean;
   login: (it_agent: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadUser() {
       const storedUser = await authService.getCurrentUser();
+      console.log('Usuário recuperado do AsyncStorage:', storedUser);
       setUser(storedUser);
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
