@@ -1,4 +1,5 @@
 const BASE_URL = 'https://sge.itel.gov.ao';
+//const BASE_URL = 'http://192.168.20.129:8002';
 
 interface ApiError extends Error {
   status?: number;
