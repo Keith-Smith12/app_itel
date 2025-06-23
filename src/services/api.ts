@@ -1,4 +1,4 @@
-const BASE_URL = 'http://192.168.20.31:8031/api';
+const BASE_URL = 'https://sge.mucua.ao/api/v1';
 
 interface ApiError extends Error {
   status?: number;

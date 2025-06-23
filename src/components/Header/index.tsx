@@ -88,7 +88,7 @@ export function Header({
               style={styles.rightButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={styles.buttonText}>📅</Text>
+              <Text style={styles.buttonText}></Text>
             </TouchableOpacity>
           )}
         </View>
