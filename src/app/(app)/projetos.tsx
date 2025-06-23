@@ -1,10 +1,11 @@
 import { DrawerActions, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
 import { ActiveTab } from '../../components/activeTab';
+import { useAuth } from '../../contexts/AuthContext';
 import propostaService from '../../services/propostaService';
 
 interface PropostaProjecto {
@@ -21,6 +22,7 @@ const tabs = [
 
 export default function Projetos() {
   const navigation = useNavigation();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<AbaProjeto>('propostos');
   const [projetos, setProjetos] = useState<PropostaProjecto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,10 +33,14 @@ export default function Projetos() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string|null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    carregarProjetos();
-  }, [activeTab]);
+    if (!authLoading && user) {
+      carregarProjetos();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, authLoading, user]);
 
   const carregarProjetos = async () => {
     try {
@@ -60,8 +66,20 @@ export default function Projetos() {
       setError('Erro ao carregar projetos');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  // Função para reload manual (botão)
+  const reloadProjetos = useCallback(() => {
+    carregarProjetos();
+  }, [activeTab, user]);
+
+  // Função para pull-to-refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    carregarProjetos();
+  }, [activeTab, user]);
 
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -72,9 +90,10 @@ export default function Projetos() {
     setSubmitError(null);
     setSubmitSuccess(false);
     try {
+      if (!user) throw new Error('Usuário não autenticado');
       await propostaService.enviarProposta({
-        it_idAluno: '', // Preencher conforme necessário
-        it_idParceiro: '', // Preencher conforme necessário
+        it_idAluno: user.processo, // Usa o processo do usuário logado
+        it_idParceiro: '', // Ajuste se houver parceiro
         vc_tema: tema,
         vc_descricao: descricao,
         vc_objectivos: '', // Pode adicionar campo se quiser
@@ -127,11 +146,16 @@ export default function Projetos() {
 
   return (
     <ThemedView style={styles.container}>
-      <Header
-        title="Projetos"
-        showBackButton={false}
-        onMenuPress={handleMenuPress}
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Header
+          title="Projetos"
+          showBackButton={false}
+          onMenuPress={handleMenuPress}
+        />
+        <TouchableOpacity onPress={reloadProjetos} style={styles.reloadButton}>
+          <ThemedText style={styles.reloadButtonText}>⟳</ThemedText>
+        </TouchableOpacity>
+      </View>
 
       <ActiveTab
         tabs={tabs}
@@ -139,8 +163,13 @@ export default function Projetos() {
         onChangeTab={(tabId) => setActiveTab(tabId as AbaProjeto)}
       />
 
-      <ScrollView style={styles.content}>
-        {loading ? (
+      <ScrollView
+        style={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {authLoading || loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
             <ThemedText style={styles.loadingText}>Carregando projetos...</ThemedText>
@@ -396,5 +425,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     marginTop: 8,
+  },
+  reloadButton: {
+    padding: 8,
+    marginRight: 12,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 36,
+    width: 36,
+  },
+  reloadButtonText: {
+    fontSize: 20,
+    color: '#007AFF',
+    fontWeight: 'bold',
   },
 });
