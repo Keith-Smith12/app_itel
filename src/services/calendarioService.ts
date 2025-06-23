@@ -29,7 +29,7 @@ class CalendarioService {
   async getHorario(processo: string | number): Promise<EventoCalendario[]> {
     try {
       const token = await authService.getToken();
-      const response = await api.get<EventoCalendario[]>(`dados/pegarDadosHorario/${processo}`, {
+      const response = await api.get<EventoCalendario[]>(`/dados/pegarDadosHorario/${processo}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
