@@ -1,98 +1,99 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from "./api";
-
-interface User {
-  id: number;
-  nome: string;
-  processo: string;
-}
-
-interface LoginResponse {
-  token: string;
-  user: User;
-  message?: string;
-}
+import api from './api';
 
 interface LoginData {
   it_agent: string;
   password: string;
 }
 
-// Chaves para o AsyncStorage
-const STORAGE_KEYS = {
-  TOKEN: '@auth_token',
-  USER: '@user_data'
-};
+interface User {
+  id: number;
+  nome: string;
+  processo: string;
+  dataNascimento: string;
+  naturalidade: string;
+  provincia: string;
+  nomePai: string;
+  nomeMae: string;
+  estadoCivil: string;
+  genero: string;
+  telefone: string;
+  email: string;
+  residencia: string;
+  bi: string;
+  curso: string;
+  anoLectivo: string;
+  turma: string;
+  turno: string;
+}
+
+interface LoginResponse {
+  user: User;
+  token: string;
+}
 
 class AuthService {
+  private readonly AUTH_TOKEN = 'Basic ghp_T9YetzgqsrJAwqIVJjeAiMWjfTMJ0z055Ywk';
+
   async login(data: LoginData): Promise<LoginResponse> {
     try {
-      console.log('[AuthService] Iniciando login para it_agent:', data.it_agent);
-
-      const response = await api.post('/auth/login', {
-        it_agent: data.it_agent,
-        password: data.password
-      });
-      console.log('[AuthService] Resposta da API:', response);
-      const dataResponse = response as { data: { user: User; token: string } };
-      const user: User = dataResponse.data.user;
-      const token: string = dataResponse.data.token;
-      const loginResponse: LoginResponse = { token, user };
-      await this.storeAuthData(loginResponse);
-      console.log('[AuthService] Login bem-sucedido, dados armazenados.');
-      return loginResponse;
-    } catch (error: any) {
-      console.error('[AuthService] Erro no login:', error, error?.response, JSON.stringify(error));
-      if (error && error.response) {
-        try {
-          const errorBody = await error.response.text?.();
-          console.error('[AuthService] Corpo da resposta de erro:', errorBody);
-        } catch (e) {
-          console.error('[AuthService] Falha ao ler corpo da resposta de erro:', e);
+      const response = await api.get<any>(
+        `/api/v1/aluno/dados_actuais/${data.it_agent}/${data.password}`,
+        {
+          headers: {
+            Authorization: this.AUTH_TOKEN,
+          },
         }
-      }
-      throw this.handleError(error);
+      );
+
+      const alunoData = response[0].aluno;
+      const user: User = {
+        id: alunoData.id,
+        nome: `${alunoData.vc_primeiroNome} ${alunoData.vc_ultimoaNome}`,
+        processo: data.it_agent,
+        dataNascimento: alunoData.dt_dataNascimento,
+        naturalidade: alunoData.vc_naturalidade,
+        provincia: alunoData.vc_provincia,
+        nomePai: alunoData.vc_namePai,
+        nomeMae: alunoData.vc_nameMae,
+        estadoCivil: alunoData.vc_estadoCivil,
+        genero: alunoData.vc_genero,
+        telefone: alunoData.it_telefone,
+        email: alunoData.vc_email,
+        residencia: alunoData.vc_residencia,
+        bi: alunoData.vc_bi,
+        curso: response[0].turma.vc_nomeCurso,
+        anoLectivo: response[0].turma.vc_anoLectivo,
+        turma: response[0].turma.vc_nomedaTurma,
+        turno: response[0].turma.vc_turnoTurma,
+      };
+
+      const loginResponse: LoginResponse = {
+        user,
+        token: 'mock-token',
+      };
+
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      await AsyncStorage.setItem('token', loginResponse.token);
+
+      return loginResponse;
+    } catch (error) {
+      throw new Error('Falha no login. Verifique suas credenciais.');
     }
-  }
-
-  private handleError(error: any): Error {
-    return new Error(error.message || 'Erro no login');
-  }
-
-  async isAuthenticated(): Promise<boolean> {
-    const token = await this.getToken();
-    return !!token;
-  }
-
-  async getToken(): Promise<string | null> {
-    return await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
   }
 
   async getCurrentUser(): Promise<User | null> {
-    const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
-    return userData ? JSON.parse(userData) : null;
+    const userString = await AsyncStorage.getItem('user');
+    return userString ? JSON.parse(userString) : null;
+  }
+
+  async getToken(): Promise<string | null> {
+    return await AsyncStorage.getItem('token');
   }
 
   async logout(): Promise<void> {
-    try {
-      await api.post('/auth/logout');
-      await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
-      console.log('[AuthService] Logout realizado com sucesso.');
-    } catch (error: any) {
-      console.error('[AuthService] Erro no logout:', error, error?.response, JSON.stringify(error));
-      throw this.handleError(error);
-    }
-  }
-
-  private async storeAuthData(response: LoginResponse): Promise<void> {
-    const storagePromises = [];
-    if (response.token) {
-      storagePromises.push(AsyncStorage.setItem(STORAGE_KEYS.TOKEN, response.token));
-    }
-    if (response.user) {
-      storagePromises.push(AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user)));
-    }
-    await Promise.all(storagePromises);
+    await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('token');
   }
 }
 

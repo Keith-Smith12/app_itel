@@ -1,4 +1,4 @@
-const BASE_URL = 'https://sge.mucua.ao/api/v1';
+const BASE_URL = 'https://sge.itel.gov.ao';
 
 interface ApiError extends Error {
   status?: number;
@@ -14,8 +14,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     error.status = response.status;
     throw error;
   }
-  const data = await response.json();
-  return data.data || data; // Retorna data.data se existir, senão retorna data diretamente
+  return response.json();
 }
 
 const api = {
@@ -24,24 +23,25 @@ const api = {
       'Content-Type': 'application/json',
       ...(config?.headers || {}),
     };
-
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'GET',
       headers,
     });
     return handleResponse<T>(response);
   },
-
-  post: async <T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> => {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(config?.headers || {}),
-    };
-
+  post: async <T>(endpoint: string, data?: Record<string, any> | FormData, config?: RequestConfig): Promise<T> => {
+    const headers = { ...(config?.headers || {}) };
+    let body: string | FormData;
+    if (data instanceof FormData) {
+      body = data;
+    } else {
+      headers['Content-Type'] = 'application/json';
+      body = data ? JSON.stringify(data) : undefined;
+    }
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',
       headers,
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     });
     return handleResponse<T>(response);
   },

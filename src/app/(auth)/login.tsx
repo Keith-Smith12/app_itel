@@ -22,7 +22,7 @@ export default function LoginPage() {
         password: password.trim()
       });
 
-      if (response.token) {
+      if (response.user) {
         router.replace('/(app)/home');
       }
     } catch (error: any) {
