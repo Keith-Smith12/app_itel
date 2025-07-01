@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Drawer } from 'expo-router/drawer';
 import React, { useState } from 'react';
 import { Switch, useColorScheme, View } from 'react-native';
+import CustomDrawerContent from '../../components/Drawer/CustomDrawerContent';
 import { ThemedText } from '../../components/ThemedText';
 
 export default function AppLayout() {
@@ -22,6 +23,7 @@ export default function AppLayout() {
         drawerActiveTintColor: '#007AFF',
         drawerInactiveTintColor: isDarkMode ? '#fff' : '#333',
       }}
+      drawerContent={props => <CustomDrawerContent {...props} />}
     >
       <Drawer.Screen
         name="home"

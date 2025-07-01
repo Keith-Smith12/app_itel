@@ -2,16 +2,17 @@ import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import React from 'react';
 import {
-    Animated,
-    Dimensions,
-    Modal,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Dimensions,
+  Modal,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { authService } from '../../services/authService';
 
 interface DrawerProps {
   isVisible: boolean;
@@ -38,19 +39,22 @@ export function Drawer({ isVisible, onClose }: DrawerProps) {
   const screenWidth = Dimensions.get('window').width;
   const drawerWidth = screenWidth * 0.75;
 
+  console.log('Drawer rendering, isVisible:', isVisible); // Log para depuração
+
   React.useEffect(() => {
+    console.log('isVisible changed:', isVisible);
     if (isVisible) {
       Animated.timing(animation, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      }).start();
+      }).start(() => console.log('Animation to open completed'));
     } else {
       Animated.timing(animation, {
         toValue: 0,
         duration: 200,
         useNativeDriver: true,
-      }).start();
+      }).start(() => console.log('Animation to close completed'));
     }
   }, [isVisible]);
 
@@ -65,11 +69,13 @@ export function Drawer({ isVisible, onClose }: DrawerProps) {
   });
 
   const handleNavigate = (route: string) => {
+    console.log('Navigating to:', route); // Log para depuração
     onClose();
     router.push(route);
   };
 
-  if (!isVisible) return null;
+  // Comente temporariamente para teste
+  // if (!isVisible) return null;
 
   return (
     <Modal transparent visible={isVisible} animationType="none">
@@ -86,7 +92,7 @@ export function Drawer({ isVisible, onClose }: DrawerProps) {
               transform: [{ translateX }],
               width: drawerWidth,
               paddingTop: insets.top,
-              paddingBottom: insets.bottom,
+              paddingBottom: insets.bottom + 20, // Aumentado para teste
             },
           ]}
         >
@@ -113,20 +119,26 @@ export function Drawer({ isVisible, onClose }: DrawerProps) {
           </View>
 
           <TouchableOpacity
-            style={[styles.menuItem, styles.logoutButton]}
-            onPress={() => {
-              onClose();
-              router.push('/login');
+            style={[styles.menuItem, styles.logoutButton, styles.logoutButtonHighlight]}
+            onPress={async () => {
+              console.log('Logout button pressed'); // Log para depuração
+              try {
+                await authService.logout();
+                onClose();
+                router.push('/login');
+              } catch (error) {
+                console.error('Logout error:', error);
+              }
             }}
           >
             <SymbolView
-              name="rectangle.portrait.and.arrow.right"
+              name="gearshape.fill" // Ícone de teste
               size={24}
               weight="medium"
-              tintColor="#FF3B30"
+              tintColor="#fff"
             />
-            <Text style={[styles.menuItemText, styles.logoutText]}>
-              Sair
+            <Text style={[styles.menuItemText, styles.logoutTextHighlight]}>
+              Terminar sessão
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -190,7 +202,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginHorizontal: 8,
   },
+  logoutButtonHighlight: {
+    backgroundColor: 'red', // Fundo alterado para teste
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   logoutText: {
     color: '#FF3B30',
+  },
+  logoutTextHighlight: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

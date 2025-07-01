@@ -25,9 +25,9 @@ export function NoteCard({ subject, p1, p2, mac, style }: NoteCardProps) {
 
   const formatGrade = (grade: number | string) => {
     if (typeof grade === 'number') {
-      return grade.toFixed(1);
+      return Math.round(grade).toString();
     }
-    return grade === 'nnl' ? 'Não lançada' : grade; 
+    return grade === 'nnl' ? 'Não lançada' : grade;
   };
 
   return (
@@ -67,7 +67,7 @@ export function NoteCard({ subject, p1, p2, mac, style }: NoteCardProps) {
         <View style={[styles.gradeItem, styles.gradeItemRight]}>
           <Text style={styles.label}>Média:</Text>
           <Text style={[styles.grade, { color: getGradeColor(average) }]}>
-            {average.toFixed(1)}
+            {Math.round(average)}
           </Text>
         </View>
       </View>

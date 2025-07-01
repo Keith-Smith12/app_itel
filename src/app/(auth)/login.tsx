@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { authService } from '../../services/authService';
 
 export default function LoginPage() {
@@ -33,86 +34,116 @@ export default function LoginPage() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Número do Processo (IT Agent)"
-        value={processo}
-        onChangeText={setProcesso}
-        keyboardType="numeric"
-        autoCapitalize="none"
-        editable={!loading}
-      />
-
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={[styles.input, { flex: 1, marginBottom: 0 }]}
-          placeholder="Senha"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
-          editable={!loading}
-        />
-        <TouchableOpacity
-          style={styles.eyeButton}
-          onPress={() => setShowPassword((prev) => !prev)}
-          disabled={loading}
-        >
-          <MaterialCommunityIcons
-            name={showPassword ? 'eye-off' : 'eye'}
-            size={24}
-            color="#888"
-          />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleLogin}
-        disabled={loading}
+    <LinearGradient
+      colors={['#001386', '#1441c4']}
+      start={{ x: 0.2, y: 0 }}
+      end={{ x: 0.8, y: 1 }}
+      style={styles.gradient}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1, width: '100%' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Entrar</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+        <View style={styles.formContainer}>
+          <Image source={require('../../../assets/images/ITEL_Logo.png')} style={styles.logo} />
+          <Text style={styles.title}>Acessar</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Número do Processo"
+            value={processo}
+            onChangeText={setProcesso}
+            keyboardType="numeric"
+            autoCapitalize="none"
+            editable={!loading}
+            placeholderTextColor="#40cfff"
+          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              placeholder="Senha"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              editable={!loading}
+              placeholderTextColor="#40cfff"
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword((prev) => !prev)}
+              disabled={loading}
+            >
+              <MaterialCommunityIcons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={24}
+                color="#b0c4de"
+              />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Entrar</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  gradient: {
+    flex: 1,
+  },
+  formContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
+    width: '100%',
+    paddingHorizontal: 24,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 18,
+    resizeMode: 'contain',
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#007AFF',
+    marginBottom: 22,
+    color: '#fff',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0,0,0,0.18)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   input: {
-    width: '100%',
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    width: 300,
+    maxWidth: '100%',
+    height: 48,
+    borderWidth: 1.2,
+    borderColor: '#40cfff',
     borderRadius: 10,
     paddingHorizontal: 15,
-    marginBottom: 15,
+    marginBottom: 14,
     fontSize: 16,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    color: '#fff',
   },
   passwordContainer: {
-    width: '100%',
+    width: 300,
+    maxWidth: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 14,
   },
   eyeButton: {
     position: 'absolute',
@@ -123,20 +154,27 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   button: {
-    backgroundColor: '#007AFF',
-    width: '100%',
-    height: 50,
+    backgroundColor: '#40cfff',
+    width: 300,
+    maxWidth: '100%',
+    height: 48,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
+    shadowColor: '#1976D2',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 4,
   },
   buttonDisabled: {
-    backgroundColor: '#99C9FF',
+    backgroundColor: '#e3eaf2',
   },
   buttonText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

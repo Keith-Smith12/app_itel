@@ -1,6 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert } from '../../components/Alert';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
@@ -20,6 +22,22 @@ const tabs = [
   { id: 'concluidos', label: 'Concluídos' },
 ];
 
+// Componente de filtro
+function Filter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <View style={styles.filterContainer}>
+      <Ionicons name="search" size={20} color="#888" style={{ marginRight: 8 }} />
+      <TextInput
+        style={styles.filterInput}
+        placeholder="Pesquisar por tema, curso..."
+        value={value}
+        onChangeText={onChange}
+        placeholderTextColor="#aaa"
+      />
+    </View>
+  );
+}
+
 export default function Projetos() {
   const navigation = useNavigation();
   const { user, loading: authLoading } = useAuth();
@@ -34,13 +52,44 @@ export default function Projetos() {
   const [submitError, setSubmitError] = useState<string|null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [modalDetalheVisible, setModalDetalheVisible] = useState(false);
+  const [projetoSelecionado, setProjetoSelecionado] = useState<PropostaProjecto | null>(null);
+  const [filter, setFilter] = useState('');
+  const [candidatarLoading, setCandidatarLoading] = useState(false);
+  const [candidatarSuccess, setCandidatarSuccess] = useState(false);
+  const [candidatarError, setCandidatarError] = useState<string|null>(null);
+  const [jaCandidatou, setJaCandidatou] = useState(false);
+  const [podeCandidatar, setPodeCandidatar] = useState(true);
+  const [temPermissao, setTemPermissao] = useState<boolean|null>(null);
 
+  // Verifica permissão ao abrir a tela
   useEffect(() => {
-    if (!authLoading && user) {
+    if (user && user.processo) {
+      propostaService.permitidoVerProjectos(user.processo)
+        .then((res) => setTemPermissao(res))
+        .catch(() => setTemPermissao(false));
+    }
+  }, [user]);
+
+  // Nova função: carregar projetos apenas ao clicar na aba
+  const handleChangeTab = (tabId: string | number) => {
+    setActiveTab(tabId.toString() as AbaProjeto);
+    setProjetos([]); // Limpa a lista para feedback visual
+  };
+
+  // Sempre que a aba mudar, faz a requisição correta
+  useEffect(() => {
+    if (temPermissao) {
       carregarProjetos();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, authLoading, user]);
+  }, [activeTab, user, temPermissao]);
+
+  // Garante que ao mudar temPermissao para true, os projetos sejam carregados
+  useEffect(() => {
+    if (temPermissao) {
+      carregarProjetos();
+    }
+  }, [temPermissao]);
 
   const carregarProjetos = async () => {
     try {
@@ -48,11 +97,16 @@ export default function Projetos() {
       setError(null);
       let projetosData: PropostaProjecto[] = [];
       if (activeTab === 'propostos') {
-        projetosData = await propostaService.listarPropostasProjectos();
+        // Buscar propostas de projetos e projetos
+        const [propostas, projectos] = await Promise.all([
+          propostaService.listarPropostasProjectos(),
+          propostaService.listarProjectos()
+        ]);
+        // Unir os dois arrays
+        projetosData = [...propostas, ...projectos];
       } else if (activeTab === 'aprovados') {
         projetosData = await propostaService.listarPropostasAprovadas();
       } else if (activeTab === 'concluidos') {
-        // Busca aprovados e filtra por status concluído
         const aprovados = await propostaService.listarPropostasAprovadas();
         projetosData = aprovados.filter(
           (projeto) =>
@@ -113,36 +167,121 @@ export default function Projetos() {
     }
   };
 
+  // Filtrar projetos conforme o texto digitado
+  const projetosFiltrados = projetos.filter((projeto) => {
+    const texto = filter.toLowerCase();
+    return (
+      (projeto.vc_tema && projeto.vc_tema.toLowerCase().includes(texto)) ||
+      (projeto.vc_nomeCurso && projeto.vc_nomeCurso.toLowerCase().includes(texto))
+    );
+  });
+
   const renderProjeto = (projeto: PropostaProjecto, index: number) => (
-    <TouchableOpacity key={index} style={styles.projetoCard}>
-      <ThemedText style={styles.projetoTitulo}>
+    <TouchableOpacity
+      key={index}
+      style={styles.projetoCard}
+      onPress={() => {
+        setProjetoSelecionado(projeto);
+        setModalDetalheVisible(true);
+      }}
+    >
+      <ThemedText style={styles.projetoTitulo} numberOfLines={2}>
         {projeto.vc_tema || 'Título não disponível'}
       </ThemedText>
-      <ThemedText style={styles.projetoDescricao} numberOfLines={3}>
-        {projeto.vc_descricao || 'Descrição não disponível'}
+      <ThemedText style={styles.projetoStatus}>
+        Status: {projeto.vc_status || (activeTab === 'propostos' ? 'Proposto' : activeTab === 'aprovados' ? 'Aprovado' : 'Concluído')}
       </ThemedText>
-      <View style={styles.projetoFooter}>
-        <ThemedText style={styles.projetoStatus}>
-          Status: {projeto.vc_status || (activeTab === 'propostos' ? 'Proposto' : activeTab === 'aprovados' ? 'Aprovado' : 'Concluído')}
-        </ThemedText>
-        {projeto.vc_parceiro && (
-          <ThemedText style={styles.projetoParceiro}>
-            Parceiro: {projeto.vc_parceiro}
-          </ThemedText>
-        )}
-      </View>
-      {projeto.vc_objectivos && (
-        <ThemedText style={styles.projetoObjectivos} numberOfLines={2}>
-          Objetivos: {projeto.vc_objectivos}
-        </ThemedText>
-      )}
-      {activeTab === 'concluidos' && projeto.dt_conclusao && (
-        <ThemedText style={styles.projetoConclusao}>
-          Concluído em: {new Date(projeto.dt_conclusao).toLocaleDateString('pt-BR')}
+      {/* Data de criação no canto inferior direito */}
+      {projeto.created_at && (
+        <ThemedText style={styles.cardDataCriacao}>
+          {new Date(projeto.created_at).toLocaleDateString('pt-AO')}
         </ThemedText>
       )}
     </TouchableOpacity>
   );
+
+  // Verifica se o usuário já se candidatou e se pode se candidatar ao abrir o modal de detalhes
+  useEffect(() => {
+    if (activeTab === 'propostos' && modalDetalheVisible && projetoSelecionado && user) {
+      setCandidatarSuccess(false);
+      setCandidatarError(null);
+      setCandidatarLoading(false);
+      setPodeCandidatar(true);
+      propostaService.jaSeCandidatou(user.processo)
+        .then((res) => {
+          setJaCandidatou(!!res && res[projetoSelecionado.id]);
+        })
+        .catch(() => setJaCandidatou(false));
+      propostaService.permissaoCandidatar()
+        .then((res) => setPodeCandidatar(res))
+        .catch(() => setPodeCandidatar(false));
+    }
+  }, [activeTab, modalDetalheVisible, projetoSelecionado, user]);
+
+  const handleCandidatar = async () => {
+    if (!user || !projetoSelecionado) return;
+    setCandidatarLoading(true);
+    setCandidatarError(null);
+    setCandidatarSuccess(false);
+    try {
+      await propostaService.candidatar({
+        it_idAluno: user.processo,
+        it_idParceiro: '', // Ajuste se houver parceiro
+        it_idPropostaProjecto: projetoSelecionado.id?.toString() || '',
+      });
+      setCandidatarSuccess(true);
+      setJaCandidatou(true);
+    } catch (err) {
+      setCandidatarError('Erro ao candidatar-se. Tente novamente.');
+    } finally {
+      setCandidatarLoading(false);
+    }
+  };
+
+  // Função auxiliar para garantir apenas elementos React válidos no Fragment
+  function renderCandidatarOptions() {
+    if (!podeCandidatar) {
+      return <ThemedText style={styles.errorText}>Você não tem permissão para se candidatar a este projeto.</ThemedText>;
+    }
+    if (jaCandidatou) {
+      return <ThemedText style={styles.successText}>Você já se candidatou a este projeto.</ThemedText>;
+    }
+    if (projetoSelecionado?.it_estado_candidatura === 0) {
+      return <ThemedText style={styles.errorText}>Candidatura indisponível para este projeto.</ThemedText>;
+    }
+    return (
+      <Pressable
+        style={[styles.modalButton, { marginTop: 8, alignSelf: 'flex-end', backgroundColor: '#007AFF' }]}
+        onPress={handleCandidatar}
+        disabled={candidatarLoading}
+      >
+        <ThemedText style={{ color: '#fff' }}>{candidatarLoading ? 'Enviando...' : 'Candidatar-se'}</ThemedText>
+      </Pressable>
+    );
+  }
+
+  // Debug log para saber o motivo do botão não aparecer
+  if (activeTab === 'propostos' && projetoSelecionado?.id && user) {
+    console.log('[DEBUG] Candidatar:', {
+      podeCandidatar,
+      jaCandidatou,
+      it_estado_candidatura: projetoSelecionado?.it_estado_candidatura,
+      user: user.processo,
+      projetoId: projetoSelecionado?.id
+    });
+  }
+
+  if (temPermissao === false) {
+    return (
+      <ThemedView style={{ flex: 1, backgroundColor: '#fff', position: 'relative' }}>
+        <Alert
+          type="error"
+          message="você é fraco. Te falta ódio"
+          visible={true}
+        />
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -160,8 +299,11 @@ export default function Projetos() {
       <ActiveTab
         tabs={tabs}
         activeTab={activeTab}
-        onChangeTab={(tabId) => setActiveTab(tabId as AbaProjeto)}
+        onChangeTab={handleChangeTab}
       />
+
+      {/* Filtro de pesquisa */}
+      <Filter value={filter} onChange={setFilter} />
 
       <ScrollView
         style={styles.content}
@@ -181,9 +323,9 @@ export default function Projetos() {
               <ThemedText style={styles.retryButtonText}>Tentar Novamente</ThemedText>
             </TouchableOpacity>
           </View>
-        ) : projetos.length > 0 ? (
+        ) : projetosFiltrados.length > 0 ? (
           <View style={styles.projetosContainer}>
-            {projetos.map(renderProjeto)}
+            {projetosFiltrados.map(renderProjeto)}
           </View>
         ) : (
           <View style={styles.emptyContainer}>
@@ -248,6 +390,70 @@ export default function Projetos() {
           </View>
         </View>
       </Modal>
+
+      {/* Modal de detalhes do projeto */}
+      <Modal
+        visible={modalDetalheVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalDetalheVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCardDetalhe}>
+            {/* Botão X de fechar no canto superior direito */}
+            <Pressable
+              style={styles.closeButton}
+              onPress={() => setModalDetalheVisible(false)}
+            >
+              <Ionicons name="close" size={24} color="#333" />
+            </Pressable>
+            <ScrollView style={{ maxHeight: '70%' }} contentContainerStyle={{ paddingBottom: 16 }} showsVerticalScrollIndicator={false}>
+              <ThemedText style={[styles.modalTitle, { color: '#111' }]}>{projetoSelecionado?.vc_tema || '-'}</ThemedText>
+              <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>
+                Curso: <ThemedText style={{ color: '#111', fontWeight: 'normal' }}>{projetoSelecionado?.vc_nomeCurso || '-'}</ThemedText>
+              </ThemedText>
+              <ThemedText style={{ color: '#111', marginBottom: 8 }}>
+                Ano Lectivo: {projetoSelecionado?.ya_inicio || '-'} - {projetoSelecionado?.ya_fim || '-'}
+              </ThemedText>
+              <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>Objetivos:</ThemedText>
+              <ThemedText style={{ color: '#111', marginBottom: 12 }}>{projetoSelecionado?.vc_objectivos || '-'}</ThemedText>
+              <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>Descrição:</ThemedText>
+              <ThemedText style={{ color: '#111', marginBottom: 12 }}>{projetoSelecionado?.vc_descricao || '-'}</ThemedText>
+              {/* Campos extras para aprovados */}
+              <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>Proposto por:</ThemedText>
+              <ThemedText style={{ color: '#111', marginBottom: 8 }}>{projetoSelecionado?.vc_proposto_por || '-'}</ThemedText>
+              <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>Aluno:</ThemedText>
+              <ThemedText style={{ color: '#111', marginBottom: 8 }}>
+                {projetoSelecionado?.vc_primeiroNomeAluno || ''} {projetoSelecionado?.vc_nomedoMeioAluno || ''} {projetoSelecionado?.vc_ultimoaNomeAluno || ''}
+              </ThemedText>
+              {projetoSelecionado?.vc_primeiroNomeParceiro && (
+                <>
+                  <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>Parceiro:</ThemedText>
+                  <ThemedText style={{ color: '#111', marginBottom: 8 }}>
+                    {projetoSelecionado?.vc_primeiroNomeParceiro || ''} {projetoSelecionado?.vc_nomedoMeioParceiro || ''} {projetoSelecionado?.vc_ultimoaNomeParceiro || ''}
+                  </ThemedText>
+                </>
+              )}
+              <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>Criado em:</ThemedText>
+              <ThemedText style={{ color: '#111', marginBottom: 4 }}>{projetoSelecionado?.created_at ? new Date(projetoSelecionado.created_at).toLocaleDateString('pt-BR') : '-'}</ThemedText>
+              <ThemedText style={{ color: '#111', fontWeight: 'bold', marginBottom: 4 }}>Atualizado em:</ThemedText>
+              <ThemedText style={{ color: '#111', marginBottom: 4 }}>{projetoSelecionado?.updated_at ? new Date(projetoSelecionado.updated_at).toLocaleDateString('pt-BR') : '-'}</ThemedText>
+            </ScrollView>
+            {/* Opções de candidatura apenas para projetos propostos */}
+            {activeTab === 'propostos' && projetoSelecionado?.id && user && (
+              <>
+                {renderCandidatarOptions()}
+                {candidatarSuccess && (
+                  <ThemedText style={styles.successText}>Candidatura enviada com sucesso!</ThemedText>
+                )}
+                {candidatarError && (
+                  <ThemedText style={styles.errorText}>{candidatarError}</ThemedText>
+                )}
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -296,7 +502,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   projetosContainer: {
-    gap: 12,
+    gap: 6,
+    paddingTop: 6,
   },
   projetoCard: {
     backgroundColor: '#fff',
@@ -310,7 +517,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
-    marginBottom: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    minHeight: 80,
+    justifyContent: 'center',
   },
   projetoTitulo: {
     fontSize: 18,
@@ -318,36 +529,10 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
-  projetoDescricao: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  projetoFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   projetoStatus: {
     fontSize: 12,
     color: '#007AFF',
     fontWeight: '600',
-  },
-  projetoParceiro: {
-    fontSize: 12,
-    color: '#666',
-  },
-  projetoObjectivos: {
-    fontSize: 12,
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  projetoConclusao: {
-    fontSize: 12,
-    color: '#34C759',
-    fontWeight: '500',
   },
   emptyContainer: {
     backgroundColor: '#fff',
@@ -440,5 +625,56 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#007AFF',
     fontWeight: 'bold',
+  },
+  modalCardDetalhe: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '90%',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    alignSelf: 'center',
+    maxHeight: '80%',
+    justifyContent: 'center',
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    margin: 16,
+    marginBottom: 0,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  filterInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#222',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    padding: 0,
+  },
+  cardDataCriacao: {
+    position: 'absolute',
+    right: 16,
+    bottom: 10,
+    fontSize: 11,
+    color: '#888',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 16,
+    padding: 2,
+    elevation: 2,
   },
 });

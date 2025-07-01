@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 
 // Interfaces para tipagem
@@ -45,9 +44,14 @@ interface PropostaRequest {
 }
 
 class PropostaService {
-  // Método auxiliar para buscar o token do AsyncStorage
-  private async getToken(): Promise<string | null> {
-    return await AsyncStorage.getItem('token');
+  // Token agora é lido da variável de ambiente
+  private readonly AUTH_TOKEN = 'Basic eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+
+  // Centraliza os headers de autenticação
+  private getAuthHeaders() {
+    return {
+      'Authorization': this.AUTH_TOKEN,
+    };
   }
 
   /**
@@ -56,16 +60,13 @@ class PropostaService {
    */
   async listarProjectos(): Promise<Projeto[]> {
     try {
-      const token = await this.getToken();
-      const response = await api.get<{ projectos: Projeto[] }>('/projecto/listar', {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const response = await api.get<{ projectos: Projeto[] }>('/api/v1/projecto/listar', {
+        headers: this.getAuthHeaders()
       });
-      console.log('listarProjectos response:', response);
+      console.log('listarProjectos response:', response.projectos);
       return response.projectos || [];
     } catch (error) {
-      console.error('Erro ao listar projetos:', error, error?.response);
+      console.error('Erro ao listar projetos:', error);
       return [];
     }
   }
@@ -76,16 +77,20 @@ class PropostaService {
    */
   async listarPropostasProjectos(): Promise<PropostaProjecto[]> {
     try {
-      const token = await this.getToken();
-      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/proposta_projecto/listar', {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/api/v1/proposta_projecto/listar', {
+        headers: this.getAuthHeaders()
       });
-      console.log('listarPropostasProjectos response:', response);
-      return response.proposta_projectos || [];
+      // Log detalhado do que vem do banco de dados
+      console.log('Resposta bruta do listarPropostasProjectos:', response);
+      if (Array.isArray(response.proposta_projectos)) {
+        console.log('Array de propostas:', response.proposta_projectos);
+      } else {
+        console.warn('proposta_projectos não é um array:', response.proposta_projectos);
+      }
+      // Garante que sempre retorna um array
+      return Array.isArray(response.proposta_projectos) ? response.proposta_projectos : [];
     } catch (error) {
-      console.error('Erro ao listar propostas de projetos:', error, error?.response);
+      console.error('Erro ao listar propostas de projetos:', error);
       return [];
     }
   }
@@ -96,16 +101,13 @@ class PropostaService {
    */
   async listarPropostasAprovadas(): Promise<PropostaProjecto[]> {
     try {
-      const token = await this.getToken();
-      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/proposta_projecto/listar/aprovados', {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/api/v1/proposta_projecto/listar/aprovados', {
+        headers: this.getAuthHeaders()
       });
-      console.log('listarPropostasAprovadas response:', response);
-      return response.proposta_projectos || [];
+      console.log('listarPropostasAprovadas response (raw):', response);
+      return Array.isArray(response) ? response : response.proposta_projectos || [];
     } catch (error) {
-      console.error('Erro ao listar propostas aprovadas:', error, error?.response);
+      console.error('Erro ao listar propostas aprovadas:', error);
       return [];
     }
   }
@@ -117,16 +119,13 @@ class PropostaService {
    */
   async getPropostaProjecto(id_proposta: string): Promise<PropostaProjecto | null> {
     try {
-      const token = await this.getToken();
-      const response = await api.get<{ proposta_projecto: PropostaProjecto }>(`/proposta_projecto/get/${id_proposta}`, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const response = await api.get<{ proposta_projecto: PropostaProjecto }>(`/api/v1/proposta_projecto/get/${id_proposta}`, {
+        headers: this.getAuthHeaders()
       });
-      console.log('getPropostaProjecto response:', response);
+      console.log('getPropostaProjecto response:', response.proposta_projecto);
       return response.proposta_projecto || null;
     } catch (error) {
-      console.error('Erro ao obter proposta:', error, error?.response);
+      console.error('Erro ao obter proposta:', error);
       return null;
     }
   }
@@ -138,16 +137,13 @@ class PropostaService {
    */
   async candidatar(candidatura: CandidaturaRequest): Promise<any> {
     try {
-      const token = await this.getToken();
-      const response = await api.post<any>('/proposta_projecto/candidatar', candidatura, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const response = await api.post<any>('/api/v1/proposta_projecto/candidatar', candidatura, {
+        headers: this.getAuthHeaders()
       });
       console.log('candidatar response:', response);
       return response;
     } catch (error) {
-      console.error('Erro ao candidatar:', error, error?.response);
+      console.error('Erro ao candidatar:', error);
       throw error;
     }
   }
@@ -159,16 +155,13 @@ class PropostaService {
    */
   async enviarProposta(proposta: PropostaRequest): Promise<any> {
     try {
-      const token = await this.getToken();
-      const response = await api.post<any>('/proposta_projecto/propor', proposta, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const response = await api.post<any>('/api/v1/proposta_projecto/propor', proposta, {
+        headers: this.getAuthHeaders()
       });
       console.log('enviarProposta response:', response);
       return response;
     } catch (error) {
-      console.error('Erro ao enviar proposta:', error, error?.response);
+      console.error('Erro ao enviar proposta:', error);
       throw error;
     }
   }
@@ -180,11 +173,8 @@ class PropostaService {
    */
   async permitidoVerProjectos(processo: string): Promise<boolean> {
     try {
-      const token = await this.getToken();
-      const data: AlunoMatricula[] = await api.get<AlunoMatricula[]>(`/aluno/matricula/${processo}`, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const data: AlunoMatricula[] = await api.get<AlunoMatricula[]>(`/api/v1/aluno/matricula/${processo}`, {
+        headers: this.getAuthHeaders()
       });
       if (data && data[0]?.turma?.vc_classeTurma) {
         const classeTurma = data[0].turma.vc_classeTurma;
@@ -204,11 +194,8 @@ class PropostaService {
    */
   async permitidoVerPropostas(processo: string): Promise<boolean> {
     try {
-      const token = await this.getToken();
-      const data: AlunoMatricula[] = await api.get<AlunoMatricula[]>(`/aluno/matricula/${processo}`, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const data: AlunoMatricula[] = await api.get<AlunoMatricula[]>(`/api/v1/aluno/matricula/${processo}`, {
+        headers: this.getAuthHeaders()
       });
       if (data && data[0]?.turma?.vc_classeTurma) {
         return data[0].turma.vc_classeTurma === '13';
@@ -228,11 +215,8 @@ class PropostaService {
    */
   async estadoCandidatura(id_proposta: string, processo: string): Promise<EstadoCandidatura> {
     try {
-      const token = await this.getToken();
-      const data: EstadoCandidatura = await api.get<EstadoCandidatura>(`/proposta_projecto/estadoCandidatura/${id_proposta}/${processo}`, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const data: EstadoCandidatura = await api.get<EstadoCandidatura>(`/api/v1/proposta_projecto/estadoCandidatura/${id_proposta}/${processo}`, {
+        headers: this.getAuthHeaders()
       });
       return data;
     } catch (error) {
@@ -248,11 +232,8 @@ class PropostaService {
    */
   async jaSeCandidatou(processo: string): Promise<CandidaturaResponse> {
     try {
-      const token = await this.getToken();
-      const data: CandidaturaResponse = await api.get<CandidaturaResponse>(`/proposta_projecto/ja_se_candidatou/${processo}`, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+      const data: CandidaturaResponse = await api.get<CandidaturaResponse>(`/api/v1/proposta_projecto/ja_se_candidatou/${processo}`, {
+        headers: this.getAuthHeaders()
       });
       return data;
     } catch (error) {
@@ -267,15 +248,13 @@ class PropostaService {
    */
   async permissaoPropor(): Promise<boolean> {
     try {
-      const token = await this.getToken();
       const data: number = await api.get<number>(`/ativador_proposta/estado/Proposta`, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+        headers: this.getAuthHeaders()
       });
       return data === 1;
     } catch (error) {
       console.error('Erro ao verificar permissão para propor:', error);
+      console.log('erro ao obter lista de projectos')
       return false;
     }
   }
@@ -286,11 +265,8 @@ class PropostaService {
    */
   async permissaoCandidatar(): Promise<boolean> {
     try {
-      const token = await this.getToken();
       const data: number = await api.get<number>(`/ativador_proposta/estado/Candidatura`, {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
+        headers: this.getAuthHeaders()
       });
       return data === 1;
     } catch (error) {

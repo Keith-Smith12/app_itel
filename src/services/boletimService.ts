@@ -40,7 +40,9 @@ class BoletimService {
         },
       });
 
-      return response.notas.map(nota => ({
+      // Garante que response.notas existe e é um array
+      const notasArray = Array.isArray(response.notas) ? response.notas : [];
+      return notasArray.map(nota => ({
         assunto: nota.vc_nome,
         notas: {
           p1: nota.fl_nota1,

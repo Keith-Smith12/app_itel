@@ -6,7 +6,7 @@ interface LoginData {
   password: string;
 }
 
-interface User {
+export interface User {
   id: number;
   nome: string;
   processo: string;
@@ -45,7 +45,7 @@ class AuthService {
           },
         }
       );
-
+      console.log(response);
       const alunoData = response[0].aluno;
       const user: User = {
         id: alunoData.id,

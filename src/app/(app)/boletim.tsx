@@ -60,11 +60,11 @@ export default function Boletim() {
       );
     }
 
-    if (!notasData || !notasData.dados.quartos[activeTrimmester]) {
+    if (!notasData || !notasData.dados.quartos[activeTrimmester] || notasData.dados.quartos[activeTrimmester].length === 0) {
       return (
         <View style={styles.centerContent}>
           <ThemedText style={styles.emptyText}>
-            Nenhuma nota disponível para este trimestre
+            Notas indisponíveis para o trimestre selecionado
           </ThemedText>
         </View>
       );
