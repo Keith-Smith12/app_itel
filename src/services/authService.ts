@@ -45,7 +45,7 @@ class AuthService {
           },
         }
       );
-
+console.log('Login response:', response);
       const alunoData = response[0].aluno;
       const user: User = {
         id: alunoData.id,
@@ -74,7 +74,7 @@ class AuthService {
       };
 
       await AsyncStorage.setItem('user', JSON.stringify(user));
-      await AsyncStorage.setItem('token', loginResponse.token);
+    //  await AsyncStorage.setItem('token', loginResponse.token);
 
       return loginResponse;
     } catch (error) {

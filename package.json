@@ -13,7 +13,9 @@
   "web": {
     "build": {
       "babel": {
-        "include": ["./src/**/*"]
+        "include": [
+          "./src/**/*"
+        ]
       }
     }
   },
@@ -59,3 +61,4 @@
   },
   "private": true
 }
+
