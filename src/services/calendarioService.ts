@@ -31,7 +31,7 @@ class CalendarioService {
       const token = await authService.getToken();
           console.log(token)
 
-      const response = await api.get<EventoCalendario[]>(`dados/pegarDadosHorario/${processo}`, {
+      const response = await api.get<EventoCalendario[]>(`/api/v1/dados/pegarDadosHorario/${processo}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
