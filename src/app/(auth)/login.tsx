@@ -18,8 +18,8 @@ export default function LoginPage() {
     try {
       setLoading(true);
       const response = await authService.login({
-        it_agent: processo.trim(),
-        password: password.trim()
+        it_idAluno: processo.trim(),
+        passe: password.trim()
       });
 
       if (response.user) {

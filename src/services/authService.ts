@@ -2,8 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 
 interface LoginData {
-  it_agent: string;
-  password: string;
+  it_idAluno: string;
+  passe: string;
 }
 
 interface User {
@@ -33,52 +33,96 @@ interface LoginResponse {
 }
 
 class AuthService {
-  private readonly AUTH_TOKEN = 'Basic ghp_T9YetzgqsrJAwqIVJjeAiMWjfTMJ0z055Ywk';
-
   async login(data: LoginData): Promise<LoginResponse> {
     try {
-      const response = await api.get<any>(
-        `/api/v1/aluno/dados_actuais/${data.it_agent}/${data.password}`,
-        {
-          headers: {
-            Authorization: this.AUTH_TOKEN,
-          },
-        }
+      // Faz a chamada ao endpoint de login
+      const loginResponse = await api.post<{ tokenAluno: string; status: string }>(
+        '/api/loginAluno',
+        data
       );
-console.log('Login response:', response);
-      const alunoData = response[0].aluno;
+      console.log('Login response:', loginResponse);
+
+      // Verifica se a resposta tem status de sucesso
+      if (loginResponse.status !== 'success') {
+        throw new Error('Falha no login. Verifique suas credenciais.');
+      }
+
+      // Faz a chamada ao endpoint de notas para obter os dados do aluno
+      const notasResponse = await api.get<{
+        estado: boolean;
+        data: {
+          dados_bib_ac: {
+            id: number;
+            vc_primeiroNome: string;
+            vc_nomedoMeio: string;
+            vc_ultimoaNome: string;
+            dt_dataNascimento: string;
+            vc_naturalidade: string;
+            vc_provincia: string;
+            vc_namePai: string;
+            vc_nameMae: string;
+            vc_estadoCivil: string;
+            vc_genero: string;
+            it_telefone: number;
+            vc_email: string;
+            vc_residencia: string;
+            vc_bi: string;
+            vc_nomeCurso: string;
+          };
+          matriculas: {
+            vc_nomedaTurma: string;
+            vc_cursoTurma: string;
+            vc_anoLectivo: string;
+            vc_turnoTurma: string;
+            vc_classeTurma: string;
+          }[];
+        };
+      }>(`/api/v2/notas/aluno/${data.it_idAluno}/12`);
+
+      // Verifica se a resposta do endpoint de notas é válida
+      if (!notasResponse.estado || !notasResponse.data.dados_bib_ac) {
+        throw new Error('Falha ao obter dados do aluno.');
+      }
+
+      const alunoData = notasResponse.data.dados_bib_ac;
+      const matricula = notasResponse.data.matriculas.find(
+        (m) => m.vc_classeTurma === '12'
+      ) || notasResponse.data.matriculas[0]; // Usa a matrícula da classe 12 ou a primeira disponível
+
       const user: User = {
         id: alunoData.id,
-        nome: `${alunoData.vc_primeiroNome} ${alunoData.vc_ultimoaNome}`,
-        processo: data.it_agent,
+        nome: `${alunoData.vc_primeiroNome} ${alunoData.vc_nomedoMeio || ''} ${alunoData.vc_ultimoaNome}`.trim(),
+        processo: data.it_idAluno,
         dataNascimento: alunoData.dt_dataNascimento,
-        naturalidade: alunoData.vc_naturalidade,
-        provincia: alunoData.vc_provincia,
-        nomePai: alunoData.vc_namePai,
-        nomeMae: alunoData.vc_nameMae,
-        estadoCivil: alunoData.vc_estadoCivil,
-        genero: alunoData.vc_genero,
-        telefone: alunoData.it_telefone,
-        email: alunoData.vc_email,
-        residencia: alunoData.vc_residencia,
-        bi: alunoData.vc_bi,
-        curso: response[0].turma.vc_nomeCurso,
-        anoLectivo: response[0].turma.vc_anoLectivo,
-        turma: response[0].turma.vc_nomedaTurma,
-        turno: response[0].turma.vc_turnoTurma,
+        naturalidade: alunoData.vc_naturalidade || '',
+        provincia: alunoData.vc_provincia || '',
+        nomePai: alunoData.vc_namePai || '',
+        nomeMae: alunoData.vc_nameMae || '',
+        estadoCivil: alunoData.vc_estadoCivil || '',
+        genero: alunoData.vc_genero || '',
+        telefone: alunoData.it_telefone ? String(alunoData.it_telefone) : '',
+        email: alunoData.vc_email || '',
+        residencia: alunoData.vc_residencia || '',
+        bi: alunoData.vc_bi || '',
+        curso: matricula?.vc_cursoTurma || alunoData.vc_nomeCurso || '',
+        anoLectivo: matricula?.vc_anoLectivo || '',
+        turma: matricula?.vc_nomedaTurma || '',
+        turno: matricula?.vc_turnoTurma || '',
       };
 
-      const loginResponse: LoginResponse = {
+      const loginResponseData: LoginResponse = {
         user,
-        token: 'mock-token',
+        token: loginResponse.tokenAluno,
       };
 
+      // Salva os dados no AsyncStorage
       await AsyncStorage.setItem('user', JSON.stringify(user));
-    //  await AsyncStorage.setItem('token', loginResponse.token);
+      await AsyncStorage.setItem('token', loginResponseData.token);
 
-      return loginResponse;
+      return loginResponseData;
     } catch (error) {
-      throw new Error('Falha no login. Verifique suas credenciais.');
+      console.error('Erro no login:', error);
+      throw new Error('Falha no login. Verifique suas credenciais ou tente novamente.');
     }
   }
 
