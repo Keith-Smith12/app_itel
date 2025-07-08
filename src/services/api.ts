@@ -37,7 +37,7 @@ const api = {
       body = data;
     } else {
       headers['Content-Type'] = 'application/json';
-      body = data ? JSON.stringify(data) : undefined;
+      body = data ? JSON.stringify(data) : '';
     }
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',

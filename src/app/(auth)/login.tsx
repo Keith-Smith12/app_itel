@@ -18,7 +18,7 @@ export default function LoginPage() {
     try {
       setLoading(true);
       const response = await authService.login({
-        it_idAluno: processo.trim(),
+        it_idAluno: Number(processo.trim()),
         passe: password.trim()
       });
 

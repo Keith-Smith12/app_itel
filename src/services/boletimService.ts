@@ -30,6 +30,8 @@ class BoletimService {
 
   async getNotasTrimestral(processo: string, trimestre: 'I' | 'II' | 'III'): Promise<DisciplinaNota[]> {
     try {
+                  const token = await authService.getToken();
+
       const formData = new FormData();
       formData.append('trimestre', trimestre);
       formData.append('processo', processo);
