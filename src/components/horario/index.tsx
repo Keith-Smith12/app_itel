@@ -1,8 +1,9 @@
+import authService from '@/services/authService';
+import calendarioService, { HorarioResponse } from '@/services/calendarioService';
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { ThemedText } from '../components/ThemedText'; // Adjust path as needed
-import { authService } from '../services/AuthService'; // Adjust path as needed
-import { calendarioService, HorarioResponse, HorarioItem } from '../services/CalendarioService'; // Adjust path as needed
+import { ThemedText } from '../ThemedText';
 
 const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
 

@@ -5,7 +5,7 @@ import { Calendario } from '../../components/calendario';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
-import HorarioComponent from '../../components/HorarioComponent'; // Adjust path as needed
+import HorarioComponent from '@/components/horario';
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState('');
