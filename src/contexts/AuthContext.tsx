@@ -26,7 +26,7 @@ interface User {
 interface AuthContextData {
   user: User | null;
   loading: boolean;
-  login: (it_agent: string, password: string) => Promise<void>;
+  login: (it_idAluno: string, passe: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -46,8 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser();
   }, []);
 
-  const login = async (it_agent: string, password: string) => {
-    const response = await authService.login({ it_agent, password });
+  const login = async (it_idAluno: string, passe: string) => {
+    const response = await authService.login({ it_idAluno, passe });
     setUser(response.user);
   };
 

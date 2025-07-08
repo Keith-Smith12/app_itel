@@ -5,6 +5,7 @@ import { Calendario } from '../../components/calendario';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
+import { calendarioService } from '../../services/calendarioService';
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState('');
@@ -20,6 +21,19 @@ export default function Home() {
     '2024-03-20': { marked: true, dotColor: '#4CAF50' },
     '2024-03-25': { marked: true, dotColor: '#F44336' }
   };
+
+  // TESTE: Exibir retorno da função getHorario
+  React.useEffect(() => {
+    (async () => {
+      try {
+        // Substitua pelo processo desejado para teste
+        const resultado = await calendarioService.getHorario('14732');
+        console.log('Retorno getHorario:', resultado);
+      } catch (e) {
+        console.log('Erro getHorario:', e);
+      }
+    })();
+  }, []);
 
   return (
     <ThemedView style={styles.container}>
