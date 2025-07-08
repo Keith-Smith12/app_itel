@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 
 interface LoginData {
-  it_idAluno: string;
+  it_idAluno: number;
   passe: string;
 }
 
@@ -78,7 +78,7 @@ class AuthService {
       const user: User = {
         id: alunoData.id,
         nome: `${alunoData.vc_primeiroNome} ${alunoData.vc_nomedoMeio || ''} ${alunoData.vc_ultimoaNome}`.trim(),
-        processo: data.it_idAluno,
+        processo: data.it_idAluno? String(data.it_idAluno) : '',
         dataNascimento: alunoData.dt_dataNascimento,
         naturalidade: alunoData.vc_naturalidade || '',
         provincia: alunoData.vc_provincia || '',
