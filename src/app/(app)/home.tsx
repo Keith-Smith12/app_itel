@@ -5,7 +5,7 @@ import { Calendario } from '../../components/calendario';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
-import { calendarioService } from '../../services/calendarioService';
+import HorarioComponent from '../../components/HorarioComponent'; // Adjust path as needed
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState('');
@@ -16,24 +16,12 @@ export default function Home() {
   };
 
   // Exemplo de datas marcadas (você pode personalizar conforme necessário)
+  // TODO: Fetch events from calendarioService.getEventos to populate dynamically
   const markedDates = {
     '2024-03-15': { marked: true, dotColor: '#FF9800' },
     '2024-03-20': { marked: true, dotColor: '#4CAF50' },
-    '2024-03-25': { marked: true, dotColor: '#F44336' }
+    '2024-03-25': { marked: true, dotColor: '#F44336' },
   };
-
-  // TESTE: Exibir retorno da função getHorario
-  React.useEffect(() => {
-    (async () => {
-      try {
-        // Substitua pelo processo desejado para teste
-        const resultado = await calendarioService.getHorario('14732');
-        console.log('Retorno getHorario:', resultado);
-      } catch (e) {
-        console.log('Erro getHorario:', e);
-      }
-    })();
-  }, []);
 
   return (
     <ThemedView style={styles.container}>
@@ -84,6 +72,8 @@ export default function Home() {
             </ThemedText>
           </View>
         )}
+
+        <HorarioComponent />
       </View>
     </ThemedView>
   );
@@ -111,10 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
@@ -139,10 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,

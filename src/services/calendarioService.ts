@@ -1,5 +1,5 @@
 import api from './api';
-import { authService } from './authService';
+import authService from './authService';
 
 export interface EventoCalendario {
   id: number;
@@ -8,17 +8,42 @@ export interface EventoCalendario {
   data_inicio: string;
   data_fim: string;
   tipo: string;
+}
 
+export interface HorarioItem {
+  id: number;
+  t_inicio: string;
+  t_fim: string;
+  it_id_turno: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  semana: string;
+  disciplina: string | null;
+  sala: number;
+  calendario: number;
+}
+
+export interface HorarioResponse {
+  calendario: {
+    id: number;
+    vc_anoLectivo: string;
+    vc_nomedaTurma: string;
+    vc_classeTurma: string;
+    vc_turnoTurma: string;
+    vc_cursoTurma: string;
+  };
+  tempos: HorarioItem[];
 }
 
 class CalendarioService {
-  async getEventos(): Promise<EventoCalendario[]> {
+  async getEventos(processo: string): Promise<EventoCalendario[]> {
     try {
       const token = await authService.getToken();
-      const response = await api.get<EventoCalendario[]>('dados/pegarDadosCalendario/{processo}', {
+      const response = await api.get<EventoCalendario[]>(`/api/v1/dados/pegarDadosCalendario/${processo}`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       return response;
     } catch (error: any) {
@@ -26,15 +51,13 @@ class CalendarioService {
     }
   }
 
-  async getHorario(processo: string | number): Promise<EventoCalendario[]> {
+  async getHorario(processo: string): Promise<HorarioResponse> {
     try {
       const token = await authService.getToken();
-          console.log(token)
-
-      const response = await api.get<EventoCalendario[]>(`/api/v1/dados/pegarDadosHorario/${processo}`, {
+      const response = await api.get<HorarioResponse>(`/api/v1/dados/pegarDadosHorario/${processo}`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       return response;
     } catch (error: any) {
@@ -42,13 +65,13 @@ class CalendarioService {
     }
   }
 
-  async getCalendario(processo: string | number): Promise<EventoCalendario[]> {
+  async getCalendario(processo: string): Promise<EventoCalendario[]> {
     try {
       const token = await authService.getToken();
-      const response = await api.get<EventoCalendario[]>(`dados/pegarDadosCalendario/${processo}`, {
+      const response = await api.get<EventoCalendario[]>(`/api/v1/dados/pegarDadosCalendario/${processo}`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       return response;
     } catch (error: any) {
