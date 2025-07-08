@@ -92,7 +92,7 @@ export default function Projetos() {
     try {
       if (!user) throw new Error('Usuário não autenticado');
       await propostaService.enviarProposta({
-        it_idAluno: user.processo, // Usa o processo do usuário logado
+        it_idAluno: Number(user.processo), // Usa o processo do usuário logado
         it_idParceiro: '', // Ajuste se houver parceiro
         vc_tema: tema,
         vc_descricao: descricao,
