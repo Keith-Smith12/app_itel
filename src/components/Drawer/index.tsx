@@ -1,15 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import React from 'react';
 import {
-  Animated,
-  Dimensions,
-  Modal,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Dimensions,
+    Modal,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { authService } from '../../services/authService';
@@ -38,6 +39,7 @@ export function Drawer({ isVisible, onClose }: DrawerProps) {
   const [animation] = React.useState(new Animated.Value(0));
   const screenWidth = Dimensions.get('window').width;
   const drawerWidth = screenWidth * 0.75;
+  const [projetosOpen, setProjetosOpen] = React.useState(false);
 
   console.log('Drawer rendering, isVisible:', isVisible); // Log para depuração
 
@@ -68,10 +70,14 @@ export function Drawer({ isVisible, onClose }: DrawerProps) {
     outputRange: [0, 0.5],
   });
 
-  const handleNavigate = (route: string) => {
+  const handleNavigate = (route: string, params?: any) => {
     console.log('Navigating to:', route); // Log para depuração
     onClose();
-    router.push(route);
+    if (params) {
+      router.push({ pathname: route, params });
+    } else {
+      router.push(route);
+    }
   };
 
   // Comente temporariamente para teste
@@ -101,6 +107,48 @@ export function Drawer({ isVisible, onClose }: DrawerProps) {
           </View>
 
           <View style={styles.menuItems}>
+            {/* Item Projetos com dropdown */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setProjetosOpen((prev) => !prev)}
+            >
+              <SymbolView
+                name="folder.fill"
+                size={24}
+                weight="medium"
+                tintColor="#007AFF"
+              />
+              <Text style={styles.menuItemText}>Projetos</Text>
+              <Ionicons
+                name={projetosOpen ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color="#007AFF"
+                style={{ marginLeft: 'auto' }}
+              />
+            </TouchableOpacity>
+            {projetosOpen && (
+              <View style={styles.dropdownContainer}>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigate('/(app)/projetos', { aba: 'propostos' })}
+                >
+                  <Text style={styles.dropdownText}>Propostos</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigate('/(app)/projetos', { aba: 'aprovados' })}
+                >
+                  <Text style={styles.dropdownText}>Aprovados</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigate('/(app)/projetos', { aba: 'concluidos' })}
+                >
+                  <Text style={styles.dropdownText}>Concluídos</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {/* Renderizar os outros itens normalmente */}
             {MENU_ITEMS.map((item, index) => (
               <TouchableOpacity
                 key={index}
@@ -213,5 +261,19 @@ const styles = StyleSheet.create({
   logoutTextHighlight: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  dropdownContainer: {
+    marginLeft: 48,
+    marginBottom: 4,
+  },
+  dropdownItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  dropdownText: {
+    fontSize: 15,
+    color: '#007AFF',
+    marginLeft: 8,
   },
 });

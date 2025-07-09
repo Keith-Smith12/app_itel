@@ -20,8 +20,8 @@ export default function AppLayout() {
         drawerStyle: {
           backgroundColor: isDarkMode ? '#1a1a1a' : '#fff',
         },
-        drawerActiveTintColor: '#007AFF',
-        drawerInactiveTintColor: isDarkMode ? '#fff' : '#333',
+        drawerActiveTintColor: '#222',
+        drawerInactiveTintColor: '#222',
       }}
       drawerContent={props => <CustomDrawerContent {...props} />}
     >
@@ -49,15 +49,6 @@ export default function AppLayout() {
           drawerLabel: 'Pauta Final',
           drawerIcon: ({ color }: { color: string }) => (
             <MaterialCommunityIcons name="clipboard-check" size={24} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="projetos"
-        options={{
-          drawerLabel: 'Projetos',
-          drawerIcon: ({ color }: { color: string }) => (
-            <MaterialCommunityIcons name="lightbulb-outline" size={24} color={color} />
           ),
         }}
       />

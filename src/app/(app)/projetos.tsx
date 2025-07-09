@@ -1,26 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Alert } from '../../components/Alert';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
-import { ActiveTab } from '../../components/activeTab';
 import { useAuth } from '../../contexts/AuthContext';
 import propostaService from '../../services/propostaService';
 
 interface PropostaProjecto {
   [key: string]: any;
 }
-
-type AbaProjeto = 'propostos' | 'aprovados' | 'concluidos';
-
-const tabs = [
-  { id: 'propostos', label: 'Propostos' },
-  { id: 'aprovados', label: 'Aprovados' },
-  { id: 'concluidos', label: 'Concluídos' },
-];
 
 // Componente de filtro
 function Filter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -41,8 +32,8 @@ function Filter({ value, onChange }: { value: string; onChange: (v: string) => v
 export default function Projetos() {
   const navigation = useNavigation();
   const { user, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<AbaProjeto>('propostos');
-  const [projetos, setProjetos] = useState<PropostaProjecto[]>([]);
+  const [propostas, setPropostas] = useState<PropostaProjecto[]>([]);
+  const [projetosDisponiveis, setProjetosDisponiveis] = useState<PropostaProjecto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -61,6 +52,7 @@ export default function Projetos() {
   const [jaCandidatou, setJaCandidatou] = useState(false);
   const [podeCandidatar, setPodeCandidatar] = useState(true);
   const [temPermissao, setTemPermissao] = useState<boolean|null>(null);
+  const [jaCarregou, setJaCarregou] = useState(false);
 
   // Verifica permissão ao abrir a tela
   useEffect(() => {
@@ -71,51 +63,23 @@ export default function Projetos() {
     }
   }, [user]);
 
-  // Nova função: carregar projetos apenas ao clicar na aba
-  const handleChangeTab = (tabId: string | number) => {
-    setActiveTab(tabId.toString() as AbaProjeto);
-    setProjetos([]); // Limpa a lista para feedback visual
-  };
-
-  // Sempre que a aba mudar, faz a requisição correta
+  // Carregar projetos e propostas ao abrir a tela
   useEffect(() => {
-    if (temPermissao) {
-      carregarProjetos();
-    }
-  }, [activeTab, user, temPermissao]);
-
-  // Garante que ao mudar temPermissao para true, os projetos sejam carregados
-  useEffect(() => {
-    if (temPermissao) {
-      carregarProjetos();
-    }
-  }, [temPermissao]);
+    carregarProjetos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const carregarProjetos = async () => {
     try {
-      setLoading(true);
+      if (!jaCarregou) setLoading(true);
       setError(null);
-      let projetosData: PropostaProjecto[] = [];
-      if (activeTab === 'propostos') {
-        // Buscar propostas de projetos e projetos
-        const [propostas, projectos] = await Promise.all([
-          propostaService.listarPropostasProjectos(),
-          propostaService.listarProjectos()
-        ]);
-        // Unir os dois arrays
-        projetosData = [...propostas, ...projectos];
-      } else if (activeTab === 'aprovados') {
-        projetosData = await propostaService.listarPropostasAprovadas();
-      } else if (activeTab === 'concluidos') {
-        const aprovados = await propostaService.listarPropostasAprovadas();
-        projetosData = aprovados.filter(
-          (projeto) =>
-            projeto.vc_status === 'Concluído' ||
-            projeto.vc_status === 'Finalizado' ||
-            projeto.vc_status === 'Completo'
-        );
-      }
-      setProjetos(projetosData);
+      const [propostasList, projetosList] = await Promise.all([
+        propostaService.listarPropostasProjectos(),
+        propostaService.listarProjectos()
+      ]);
+      setPropostas(propostasList);
+      setProjetosDisponiveis(projetosList);
+      setJaCarregou(true);
     } catch (err) {
       setError('Erro ao carregar projetos');
     } finally {
@@ -127,13 +91,13 @@ export default function Projetos() {
   // Função para reload manual (botão)
   const reloadProjetos = useCallback(() => {
     carregarProjetos();
-  }, [activeTab, user]);
+  }, []);
 
   // Função para pull-to-refresh
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     carregarProjetos();
-  }, [activeTab, user]);
+  }, []);
 
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -146,20 +110,18 @@ export default function Projetos() {
     try {
       if (!user) throw new Error('Usuário não autenticado');
       await propostaService.enviarProposta({
-        it_idAluno: user.processo, // Usa o processo do usuário logado
-        it_idParceiro: '', // Ajuste se houver parceiro
+        it_idAluno: user.processo,
+        it_idParceiro: '',
         vc_tema: tema,
         vc_descricao: descricao,
-        vc_objectivos: '', // Pode adicionar campo se quiser
+        vc_objectivos: '',
       });
       setSubmitSuccess(true);
       setTema('');
       setDescricao('');
-      setTimeout(() => {
-        setModalVisible(false);
-        setSubmitSuccess(false);
-        carregarProjetos();
-      }, 1200);
+      carregarProjetos();
+      setModalVisible(false);
+      setSubmitSuccess(false);
     } catch (err) {
       setSubmitError('Erro ao propor projeto. Tente novamente.');
     } finally {
@@ -167,12 +129,13 @@ export default function Projetos() {
     }
   };
 
-  // Filtrar projetos conforme o texto digitado
-  const projetosFiltrados = projetos.filter((projeto) => {
+  // Unir propostas e projetos em uma lista única filtrada
+  const listaUnica = [...propostas, ...projetosDisponiveis];
+  const listaFiltrada = listaUnica.filter((item) => {
     const texto = filter.toLowerCase();
     return (
-      (projeto.vc_tema && projeto.vc_tema.toLowerCase().includes(texto)) ||
-      (projeto.vc_nomeCurso && projeto.vc_nomeCurso.toLowerCase().includes(texto))
+      (item.vc_tema && item.vc_tema.toLowerCase().includes(texto)) ||
+      (item.vc_nomeCurso && item.vc_nomeCurso.toLowerCase().includes(texto))
     );
   });
 
@@ -189,7 +152,7 @@ export default function Projetos() {
         {projeto.vc_tema || 'Título não disponível'}
       </ThemedText>
       <ThemedText style={styles.projetoStatus}>
-        Status: {projeto.vc_status || (activeTab === 'propostos' ? 'Proposto' : activeTab === 'aprovados' ? 'Aprovado' : 'Concluído')}
+        Status: {projeto.vc_status || 'Proposto'}
       </ThemedText>
       {/* Data de criação no canto inferior direito */}
       {projeto.created_at && (
@@ -202,7 +165,7 @@ export default function Projetos() {
 
   // Verifica se o usuário já se candidatou e se pode se candidatar ao abrir o modal de detalhes
   useEffect(() => {
-    if (activeTab === 'propostos' && modalDetalheVisible && projetoSelecionado && user) {
+    if (modalDetalheVisible && projetoSelecionado && user) {
       setCandidatarSuccess(false);
       setCandidatarError(null);
       setCandidatarLoading(false);
@@ -216,7 +179,7 @@ export default function Projetos() {
         .then((res) => setPodeCandidatar(res))
         .catch(() => setPodeCandidatar(false));
     }
-  }, [activeTab, modalDetalheVisible, projetoSelecionado, user]);
+  }, [modalDetalheVisible, projetoSelecionado, user]);
 
   const handleCandidatar = async () => {
     if (!user || !projetoSelecionado) return;
@@ -261,7 +224,7 @@ export default function Projetos() {
   }
 
   // Debug log para saber o motivo do botão não aparecer
-  if (activeTab === 'propostos' && projetoSelecionado?.id && user) {
+  if (projetoSelecionado?.id && user) {
     console.log('[DEBUG] Candidatar:', {
       podeCandidatar,
       jaCandidatou,
@@ -291,16 +254,7 @@ export default function Projetos() {
           showBackButton={false}
           onMenuPress={handleMenuPress}
         />
-        <TouchableOpacity onPress={reloadProjetos} style={styles.reloadButton}>
-          <ThemedText style={styles.reloadButtonText}>⟳</ThemedText>
-        </TouchableOpacity>
       </View>
-
-      <ActiveTab
-        tabs={tabs}
-        activeTab={activeTab}
-        onChangeTab={handleChangeTab}
-      />
 
       {/* Filtro de pesquisa */}
       <Filter value={filter} onChange={setFilter} />
@@ -311,32 +265,29 @@ export default function Projetos() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {authLoading || loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <ThemedText style={styles.loadingText}>Carregando projetos...</ThemedText>
-          </View>
-        ) : error ? (
+        {error ? (
           <View style={styles.errorContainer}>
             <ThemedText style={styles.errorText}>{error}</ThemedText>
             <TouchableOpacity style={styles.retryButton} onPress={carregarProjetos}>
               <ThemedText style={styles.retryButtonText}>Tentar Novamente</ThemedText>
             </TouchableOpacity>
           </View>
-        ) : projetosFiltrados.length > 0 ? (
-          <View style={styles.projetosContainer}>
-            {projetosFiltrados.map(renderProjeto)}
-          </View>
         ) : (
-          <View style={styles.emptyContainer}>
-            <ThemedText style={styles.emptyText}>
-              Nenhum projeto encontrado para esta aba
-            </ThemedText>
-          </View>
+          <>
+            {listaFiltrada.length > 0 ? (
+              <View style={styles.projetosContainer}>
+                {listaFiltrada.map(renderProjeto)}
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <ThemedText style={styles.emptyText}>Nenhum projeto encontrado.</ThemedText>
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
 
-      {activeTab === 'propostos' && (
+      {(
         <TouchableOpacity
           style={styles.fab}
           onPress={() => setModalVisible(true)}
@@ -440,7 +391,7 @@ export default function Projetos() {
               <ThemedText style={{ color: '#111', marginBottom: 4 }}>{projetoSelecionado?.updated_at ? new Date(projetoSelecionado.updated_at).toLocaleDateString('pt-BR') : '-'}</ThemedText>
             </ScrollView>
             {/* Opções de candidatura apenas para projetos propostos */}
-            {activeTab === 'propostos' && projetoSelecionado?.id && user && (
+            {projetoSelecionado?.id && user && (
               <>
                 {renderCandidatarOptions()}
                 {candidatarSuccess && (
