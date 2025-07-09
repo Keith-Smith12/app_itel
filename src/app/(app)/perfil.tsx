@@ -59,14 +59,6 @@ export default function Perfil() {
           </View>
 
           <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="calendar" size={24} color="#007AFF" />
-            <View style={styles.infoTextContainer}>
-              <ThemedText style={styles.infoLabel}>Data de Nascimento</ThemedText>
-              <ThemedText style={styles.infoValue}>{user.dataNascimento}</ThemedText>
-            </View>
-          </View>
-
-          <View style={styles.infoItem}>
             <MaterialCommunityIcons name="map-marker" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoLabel}>Naturalidade</ThemedText>
