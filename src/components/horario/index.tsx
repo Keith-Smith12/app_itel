@@ -1,7 +1,6 @@
 import authService from '@/services/authService';
 import calendarioService, { HorarioResponse } from '@/services/calendarioService';
-import React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText } from '../ThemedText';
 
@@ -18,9 +17,22 @@ const HorarioComponent = () => {
         if (!user || !user.processo) {
           throw new Error('Usuário não encontrado ou processo não disponível.');
         }
+
         const resultado = await calendarioService.getHorario(user.processo);
-        console.log('Retorno getHorario:', resultado);
-        setHorario(resultado);
+
+        const temposValidos = resultado.tempos.filter(
+          (t) =>
+            t &&
+            t.semana &&
+            diasDaSemana.includes(t.semana) &&
+            t.t_inicio &&
+            t.t_fim
+        );
+
+        setHorario({
+          ...resultado,
+          tempos: temposValidos,
+        });
       } catch (e: any) {
         console.error('Erro ao buscar horário:', e);
         setError('Falha ao carregar o horário. Tente novamente.');
@@ -44,28 +56,39 @@ const HorarioComponent = () => {
     );
   }
 
-  // Group horarios by day for display
-  const horariosPorDia = diasDaSemana.map((dia) => ({
-    dia,
-    tempos: horario.tempos.filter((item) => item.semana === dia),
-  }));
+  const horariosPorDia = diasDaSemana.map((dia) => {
+    const tempos = horario.tempos
+      .filter((item) => item.semana === dia)
+      .sort((a, b) => a.t_inicio.localeCompare(b.t_inicio)); // Ordenar por hora
+
+    return { dia, tempos };
+  });
 
   return (
     <ScrollView style={styles.container}>
-      <ThemedText style={styles.header}>
-        Horário {horario.calendario.vc_nomedaTurma} - {horario.calendario.vc_anoLectivo}
-      </ThemedText>
-      <ThemedText style={styles.subHeader}>
-        Curso: {horario.calendario.vc_cursoTurma}, Turno: {horario.calendario.vc_turnoTurma}
-      </ThemedText>
+      <View style={styles.headerContainer}>
+        <ThemedText style={styles.header}>
+          Horário - {horario.calendario.vc_nomedaTurma} ({horario.calendario.vc_anoLectivo})
+        </ThemedText>
+        <ThemedText style={styles.subHeader}>
+          Curso: {horario.calendario.vc_cursoTurma}
+        </ThemedText>
+        <ThemedText style={styles.subHeader}>
+          Turno: {horario.calendario.vc_turnoTurma}
+        </ThemedText>
+      </View>
+
       {horariosPorDia.map((dia) => (
-        <View key={dia.dia} style={styles.dayContainer}>
+        <View key={dia.dia} style={styles.dayBlock}>
           <ThemedText style={styles.dayHeader}>{dia.dia}</ThemedText>
           {dia.tempos.length > 0 ? (
-            dia.tempos.map((item) => (
-              <View key={`${item.id}-${item.t_inicio}`} style={styles.itemContainer}>
-                <ThemedText style={styles.itemText}>
-                  {item.t_inicio} - {item.t_fim}: {item.disciplina || 'Livre'} (Sala {item.sala})
+            dia.tempos.map((item, index) => (
+              <View key={`${item.id}-${index}`} style={styles.classItem}>
+                <ThemedText style={styles.timeText}>
+                  {item.t_inicio} - {item.t_fim}
+                </ThemedText>
+                <ThemedText style={styles.classText}>
+                  {item.disciplina || 'Livre'} {item.sala ? `(Sala ${item.sala})` : ''}
                 </ThemedText>
               </View>
             ))
@@ -81,50 +104,73 @@ const HorarioComponent = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
     backgroundColor: '#fff',
-    borderRadius: 10,
+  },
+  headerContainer: {
     marginTop: 16,
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingBottom: 10,
   },
   header: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
+    color: '#222',
+    marginBottom: 4,
   },
   subHeader: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 16,
+    fontSize: 14,
+    color: '#666',
   },
-  dayContainer: {
-    marginBottom: 16,
+  dayBlock: {
+    marginBottom: 24,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   dayHeader: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 10,
+    color: '#333',
   },
-  itemContainer: {
-    padding: 8,
-    backgroundColor: '#f5f5f5',
+  classItem: {
+    backgroundColor: '#f9f9f9',
     borderRadius: 8,
-    marginBottom: 4,
+    padding: 10,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  itemText: {
+  timeText: {
     fontSize: 14,
+    fontWeight: 'bold',
+    color: '#555',
+  },
+  classText: {
+    fontSize: 14,
+    color: '#333',
   },
   noScheduleText: {
     fontSize: 14,
-    color: '#888',
+    fontStyle: 'italic',
+    color: '#999',
   },
   errorText: {
     fontSize: 16,
     color: 'red',
     textAlign: 'center',
+    marginTop: 40,
   },
   loadingText: {
     fontSize: 16,
     textAlign: 'center',
+    marginTop: 40,
   },
 });
 
