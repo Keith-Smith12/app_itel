@@ -68,13 +68,16 @@ const HorarioComponent = () => {
     <ScrollView style={styles.container}>
       <View style={styles.headerContainer}>
         <ThemedText style={styles.header}>
-          Horário - {horario.calendario.vc_nomedaTurma} ({horario.calendario.vc_anoLectivo})
+          Horário -Turma  {horario.calendario.vc_nomedaTurma} ({horario.calendario.vc_anoLectivo})
         </ThemedText>
         <ThemedText style={styles.subHeader}>
           Curso: {horario.calendario.vc_cursoTurma}
         </ThemedText>
         <ThemedText style={styles.subHeader}>
           Turno: {horario.calendario.vc_turnoTurma}
+        </ThemedText>
+        <ThemedText style={styles.subHeader}>
+          Classe: {horario.calendario.vc_classeTurma}º
         </ThemedText>
       </View>
 
@@ -107,6 +110,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 24,
     backgroundColor: '#fff',
+    marginTop: 10,
+    borderRadius: 10,
+    
   },
   headerContainer: {
     marginTop: 16,
