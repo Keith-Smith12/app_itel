@@ -26,7 +26,7 @@ LocaleConfig.locales['pt-br'] = {
 LocaleConfig.defaultLocale = 'pt-br';
 
 interface CalendarioProps {
-  onDateChange?: (date: string) => void;
+onDateChange?: (data: { date: string; weekDay: string }) => void;
   initialDate?: string;
   minDate?: string;
   maxDate?: string;
@@ -79,10 +79,21 @@ export const Calendario: React.FC<CalendarioProps> = ({
         current={initialDate}
         minDate={minDate}
         maxDate={maxDate}
-        onDayPress={(day) => {
-          setSelectedDate(day.dateString);
-          onDateChange?.(day.dateString);
-        }}
+onDayPress={(day) => {
+  setSelectedDate(day.dateString);
+
+  const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  const diaIndex = new Date(day.dateString).getDay();
+  const weekDay = diasSemana[diaIndex];
+
+  console.log(`Selecionado: ${day.dateString} (${weekDay})`);
+
+  onDateChange?.({
+    date: day.dateString,
+    weekDay: weekDay,
+  });
+}}
+
         markedDates={marked}
         enableSwipeMonths={true}
         hideExtraDays={false}

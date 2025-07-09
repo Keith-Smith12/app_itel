@@ -65,7 +65,6 @@ class AuthService {
           vc_turnoTurma?: string;
         };
       }>('/api/loginAluno', data);
-      console.log('Login response:', loginResponse);
 
       // Verifica se a resposta tem status de sucesso
       if (loginResponse.status !== 'success') {
@@ -107,7 +106,6 @@ class AuthService {
 
       return loginResponseData;
     } catch (error) {
-      console.error('Erro no login:', error);
       throw new Error('Falha no login. Verifique suas credenciais ou tente novamente.');
     }
   }

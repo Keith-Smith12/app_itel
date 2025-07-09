@@ -10,6 +10,7 @@ import HorarioComponent from '@/components/horario';
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState('');
   const navigation = useNavigation();
+  const [diaSemana, setDiaSemana] = useState('');
 
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -34,7 +35,10 @@ export default function Home() {
       <View style={styles.content}>
         <View style={styles.calendarContainer}>
           <Calendario
-            onDateChange={(date: string) => setSelectedDate(date)}
+        onDateChange={({ date, weekDay }) => {
+    setSelectedDate(date); // <-- Adiciona isto
+    setDiaSemana(weekDay);
+  }}
             markedDates={markedDates}
             tema={{
               selectedDayBackgroundColor: '#007AFF',
@@ -73,7 +77,10 @@ export default function Home() {
           </View>
         )}
 
-        <HorarioComponent />
+<HorarioComponent
+  dataSelecionada={selectedDate}
+  diaSemana={diaSemana}
+/>
       </View>
     </ThemedView>
   );
