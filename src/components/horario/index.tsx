@@ -15,7 +15,6 @@ const HorarioComponent: React.FC<Props> = ({ diaSemana, dataSelecionada }) => {
   const [horario, setHorario] = useState<HorarioResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // fallback para o dia atual
   const hoje = new Date();
   const diaAtual = diasSemana[hoje.getDay()];
   const dataAtual = hoje.toISOString().split('T')[0];
@@ -48,7 +47,6 @@ const HorarioComponent: React.FC<Props> = ({ diaSemana, dataSelecionada }) => {
     })();
   }, []);
 
-
   if (error) {
     return (
       <View style={styles.container}>
@@ -60,7 +58,7 @@ const HorarioComponent: React.FC<Props> = ({ diaSemana, dataSelecionada }) => {
   if (!horario) {
     return (
       <View style={styles.container}>
-        <ThemedText style={styles.loadingText}>Carregando horário...</ThemedText>
+        <ThemedText style={styles.infoText}>Carregando horário...</ThemedText>
       </View>
     );
   }
@@ -99,7 +97,9 @@ const HorarioComponent: React.FC<Props> = ({ diaSemana, dataSelecionada }) => {
             </View>
           ))
         ) : (
-          <ThemedText style={styles.noScheduleText}>Sem aulas programadas</ThemedText>
+          <ThemedText style={styles.noScheduleText}>
+            Nenhuma aula programada para este dia.
+          </ThemedText>
         )}
       </View>
     </ScrollView>
@@ -179,15 +179,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     color: '#999',
+    textAlign: 'center',
+    marginTop: 20,
   },
   errorText: {
     fontSize: 16,
-    color: 'red',
+    color: '#999', // antes vermelho, agora cinzento discreto
     textAlign: 'center',
     marginTop: 40,
   },
-  loadingText: {
+  infoText: {
     fontSize: 16,
+    color: '#777',
     textAlign: 'center',
     marginTop: 40,
   },
