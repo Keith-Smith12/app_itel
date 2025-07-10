@@ -35,13 +35,13 @@ class BoletimService {
       const formData = new FormData();
       formData.append('trimestre', trimestre);
       formData.append('processo', processo);
-
       const response = await api.post<ApiNotasTrimestralResponse>('/api/notas-trimestral', formData, {
         headers: {
           Authorization: `Basic ${this.authToken}`,
         },
       });
 
+console.log(`Notas do ${trimestre}º trimestre:`, response);
       // Garante que response.notas existe e é um array
       const notasArray = Array.isArray(response.notas) ? response.notas : [];
       return notasArray.map(nota => ({

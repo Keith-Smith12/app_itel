@@ -86,7 +86,6 @@ onDayPress={(day) => {
   const diaIndex = new Date(day.dateString).getDay();
   const weekDay = diasSemana[diaIndex];
 
-  console.log(`Selecionado: ${day.dateString} (${weekDay})`);
 
   onDateChange?.({
     date: day.dateString,
