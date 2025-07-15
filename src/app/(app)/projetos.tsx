@@ -2,12 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { Alert } from '../../components/Alert';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
 import { useAuth } from '../../contexts/AuthContext';
 import propostaService from '../../services/propostaService';
+import { useRouter } from 'expo-router';
 
 interface PropostaProjecto {
   [key: string]: any;
@@ -31,6 +31,7 @@ function Filter({ value, onChange }: { value: string; onChange: (v: string) => v
 
 export default function Projetos() {
   const navigation = useNavigation();
+  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [propostas, setPropostas] = useState<PropostaProjecto[]>([]);
   const [projetosDisponiveis, setProjetosDisponiveis] = useState<PropostaProjecto[]>([]);
@@ -51,23 +52,20 @@ export default function Projetos() {
   const [candidatarError, setCandidatarError] = useState<string|null>(null);
   const [jaCandidatou, setJaCandidatou] = useState(false);
   const [podeCandidatar, setPodeCandidatar] = useState(true);
-  const [temPermissao, setTemPermissao] = useState<boolean|null>(null);
   const [jaCarregou, setJaCarregou] = useState(false);
-
-  // Verifica permissão ao abrir a tela
-  useEffect(() => {
-    if (user && user.processo) {
-      propostaService.permitidoVerProjectos(user.processo)
-        .then((res) => setTemPermissao(res))
-        .catch(() => setTemPermissao(false));
-    }
-  }, [user]);
 
   // Carregar projetos e propostas ao abrir a tela
   useEffect(() => {
     carregarProjetos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!authLoading && user && user.it_classeConclusao === null) {
+      alert('Meu amigo, voce ainda não chegou la');
+      router.replace('/(app)/home');
+    }
+  }, [authLoading, user]);
 
   const carregarProjetos = async () => {
     try {
@@ -234,16 +232,8 @@ export default function Projetos() {
     });
   }
 
-  if (temPermissao === false) {
-    return (
-      <ThemedView style={{ flex: 1, backgroundColor: '#fff', position: 'relative' }}>
-        <Alert
-          type="error"
-          message="você é fraco. Te falta ódio"
-          visible={true}
-        />
-      </ThemedView>
-    );
+  if (!user || user.it_classeConclusao === null) {
+    return null;
   }
 
   return (

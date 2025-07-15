@@ -25,6 +25,7 @@ export interface User {
   anoLectivo: string;
   turma: string;
   turno: string;
+  it_classeConclusao: number | null;
 }
 
 interface LoginResponse {
@@ -57,6 +58,7 @@ class AuthService {
           vc_bi: string;
           vc_nomeCurso: string;
           vc_anoLectivo: string;
+          it_classeConclusao: number | null;
         };
         turma: {
           vc_nomedaTurma: string;
@@ -94,6 +96,7 @@ class AuthService {
         anoLectivo: turmaData.vc_anoLectivo || alunoData.vc_anoLectivo || '',
         turma: turmaData.vc_nomedaTurma || '',
         turno: turmaData.vc_turnoTurma || '',
+        it_classeConclusao: alunoData.it_classeConclusao ?? null,
       };
 
       const loginResponseData: LoginResponse = {

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 
 // Interfaces para tipagem
@@ -44,13 +45,11 @@ interface PropostaRequest {
 }
 
 class PropostaService {
-  // Token agora é lido da variável de ambiente
-  private readonly AUTH_TOKEN = 'Basic eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
-
   // Centraliza os headers de autenticação
-  private getAuthHeaders() {
+  private async getAuthHeaders() {
+    const token = await AsyncStorage.getItem('token');
     return {
-      'Authorization': this.AUTH_TOKEN,
+      'Authorization': token ? `Bearer ${token}` : '',
     };
   }
 
@@ -60,8 +59,9 @@ class PropostaService {
    */
   async listarProjectos(): Promise<Projeto[]> {
     try {
-      const response = await api.get<{ projectos: Projeto[] }>('/api/v1/projecto/listar', {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const response = await api.get<{ projectos: Projeto[] }>('/api/v2/projecto/listar', {
+        headers
       });
       console.log('listarProjectos response:', response.projectos);
       return response.projectos || [];
@@ -77,8 +77,9 @@ class PropostaService {
    */
   async listarPropostasProjectos(): Promise<PropostaProjecto[]> {
     try {
-      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/api/v1/proposta_projecto/listar', {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/api/v2/proposta_projecto/listar', {
+        headers
       });
       // Log detalhado do que vem do banco de dados
       console.log('Resposta bruta do listarPropostasProjectos:', response);
@@ -101,8 +102,9 @@ class PropostaService {
    */
   async listarPropostasAprovadas(): Promise<PropostaProjecto[]> {
     try {
-      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/api/v1/proposta_projecto/listar/aprovados', {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const response = await api.get<{ proposta_projectos: PropostaProjecto[] }>('/api/v2/proposta_projecto/listar/aprovados', {
+        headers
       });
       console.log('listarPropostasAprovadas response (raw):', response);
       return Array.isArray(response) ? response : response.proposta_projectos || [];
@@ -119,8 +121,9 @@ class PropostaService {
    */
   async getPropostaProjecto(id_proposta: string): Promise<PropostaProjecto | null> {
     try {
-      const response = await api.get<{ proposta_projecto: PropostaProjecto }>(`/api/v1/proposta_projecto/get/${id_proposta}`, {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const response = await api.get<{ proposta_projecto: PropostaProjecto }>(`/api/v2/proposta_projecto/get/${id_proposta}`, {
+        headers
       });
       console.log('getPropostaProjecto response:', response.proposta_projecto);
       return response.proposta_projecto || null;
@@ -137,8 +140,9 @@ class PropostaService {
    */
   async candidatar(candidatura: CandidaturaRequest): Promise<any> {
     try {
-      const response = await api.post<any>('/api/v1/proposta_projecto/candidatar', candidatura, {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const response = await api.post<any>('/api/v2/proposta_projecto/candidatar', candidatura, {
+        headers
       });
       console.log('candidatar response:', response);
       return response;
@@ -155,8 +159,9 @@ class PropostaService {
    */
   async enviarProposta(proposta: PropostaRequest): Promise<any> {
     try {
-      const response = await api.post<any>('/api/v1/proposta_projecto/propor', proposta, {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const response = await api.post<any>('/api/v2/proposta_projecto/propor', proposta, {
+        headers
       });
       console.log('enviarProposta response:', response);
       return response;
@@ -167,35 +172,15 @@ class PropostaService {
   }
 
   /**
-   * Verifica se o aluno pode ver projetos baseado na sua turma
-   * @param processo - Número do processo do aluno
-   * @returns Promise<boolean> - true se pode ver projetos, false caso contrário
-   */
-  async permitidoVerProjectos(processo: string): Promise<boolean> {
-    try {
-      const data: AlunoMatricula[] = await api.get<AlunoMatricula[]>(`/api/v1/aluno/matricula/${processo}`, {
-        headers: this.getAuthHeaders()
-      });
-      if (data && data[0]?.turma?.vc_classeTurma) {
-        const classeTurma = data[0].turma.vc_classeTurma;
-        return ['10', '11', '12', '13'].includes(classeTurma);
-      }
-      return false;
-    } catch (error) {
-      console.error('Erro ao verificar permissão para ver projetos:', error);
-      return false;
-    }
-  }
-
-  /**
    * Verifica se o aluno pode ver propostas (apenas turma 13)
    * @param processo - Número do processo do aluno
    * @returns Promise<boolean> - true se pode ver propostas, false caso contrário
    */
   async permitidoVerPropostas(processo: string): Promise<boolean> {
     try {
-      const data: AlunoMatricula[] = await api.get<AlunoMatricula[]>(`/api/v1/aluno/matricula/${processo}`, {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const data: AlunoMatricula[] = await api.get<AlunoMatricula[]>(`/api/v2/aluno/matricula/${processo}`, {
+        headers
       });
       if (data && data[0]?.turma?.vc_classeTurma) {
         return data[0].turma.vc_classeTurma === '13';
@@ -215,8 +200,9 @@ class PropostaService {
    */
   async estadoCandidatura(id_proposta: string, processo: string): Promise<EstadoCandidatura> {
     try {
-      const data: EstadoCandidatura = await api.get<EstadoCandidatura>(`/api/v1/proposta_projecto/estadoCandidatura/${id_proposta}/${processo}`, {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const data: EstadoCandidatura = await api.get<EstadoCandidatura>(`/api/v2/proposta_projecto/estadoCandidatura/${id_proposta}/${processo}`, {
+        headers
       });
       return data;
     } catch (error) {
@@ -232,8 +218,9 @@ class PropostaService {
    */
   async jaSeCandidatou(processo: string): Promise<CandidaturaResponse> {
     try {
-      const data: CandidaturaResponse = await api.get<CandidaturaResponse>(`/api/v1/proposta_projecto/ja_se_candidatou/${processo}`, {
-        headers: this.getAuthHeaders()
+      const headers = await this.getAuthHeaders();
+      const data: CandidaturaResponse = await api.get<CandidaturaResponse>(`/api/v2/proposta_projecto/ja_se_candidatou/${processo}`, {
+        headers
       });
       return data;
     } catch (error) {
@@ -248,8 +235,9 @@ class PropostaService {
    */
   async permissaoPropor(): Promise<boolean> {
     try {
+      const headers = await this.getAuthHeaders();
       const data: number = await api.get<number>(`/ativador_proposta/estado/Proposta`, {
-        headers: this.getAuthHeaders()
+        headers
       });
       return data === 1;
     } catch (error) {
@@ -265,8 +253,9 @@ class PropostaService {
    */
   async permissaoCandidatar(): Promise<boolean> {
     try {
+      const headers = await this.getAuthHeaders();
       const data: number = await api.get<number>(`/ativador_proposta/estado/Candidatura`, {
-        headers: this.getAuthHeaders()
+        headers
       });
       return data === 1;
     } catch (error) {
@@ -289,24 +278,22 @@ class PropostaService {
   }> {
     try {
       const [
-        podeVerProjectos,
         podeVerPropostas,
         podePropor,
         podeCandidatar,
         jaSeCandidatou
       ] = await Promise.all([
-        this.permitidoVerProjectos(processo),
         this.permitidoVerPropostas(processo),
         this.permissaoPropor(),
         this.permissaoCandidatar(),
         this.jaSeCandidatou(processo)
       ]);
       return {
-        podeVerProjectos,
-        podeVerPropostas,
-        podePropor,
-        podeCandidatar,
-        jaSeCandidatou
+        podeVerProjectos: true,
+        podeVerPropostas: podeVerPropostas,
+        podePropor: podePropor,
+        podeCandidatar: podeCandidatar,
+        jaSeCandidatou: jaSeCandidatou
       };
     } catch (error) {
       console.error('Erro ao verificar permissões:', error);
@@ -317,3 +304,5 @@ class PropostaService {
 
 export const propostaService = new PropostaService();
 export default propostaService;
+
+

@@ -26,21 +26,25 @@ export interface DisciplinaNota {
 }
 
 class BoletimService {
-  private readonly authToken = 'd3MuYWRtY2F6ZW5nYTptZm4zNDYwODIwMjI=';
-
   async getNotasTrimestral(processo: string, trimestre: 'I' | 'II' | 'III'): Promise<DisciplinaNota[]> {
     try {
-          const token = await authService.getToken();
-
-      const formData = new FormData();
-      formData.append('trimestre', trimestre);
-      formData.append('processo', processo);
-
-      const response = await api.post<ApiNotasTrimestralResponse>('/api/notas-trimestral', formData, {
-        headers: {
-          Authorization: `Basic ${this.authToken}`,
-        },
-      });
+      let token;
+      try {
+        token = await authService.getToken();
+        console.log('Token obtido:', token);
+      } catch (tokenError) {
+        console.error('Erro ao obter token:', tokenError);
+        throw tokenError;
+      }
+      const response = await api.post<ApiNotasTrimestralResponse>(
+        '/api/v2/notas-trimestral',
+        { processo, trimestre },
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+        }
+      );
 
       // Garante que response.notas existe e é um array
       const notasArray = Array.isArray(response.notas) ? response.notas : [];
@@ -53,8 +57,12 @@ class BoletimService {
         },
         data: '',
       }));
-    } catch (error) {
-      console.error(`Erro ao obter notas do ${trimestre}º trimestre:`, error);
+    } catch (error: any) {
+      if (error.response) {
+        console.error(`Erro ao obter notas do ${trimestre}º trimestre:`, error.response.status, error.response.data);
+      } else {
+        console.error(`Erro ao obter notas do ${trimestre}º trimestre:`, error.message || error);
+      }
       return [];
     }
   }

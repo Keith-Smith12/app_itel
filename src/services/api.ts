@@ -1,5 +1,5 @@
 const BASE_URL = 'https://sge.mucua.ao';
-//const BASE_URL = 'http://192.168.20.129:8002';
+//const BASE_URL = 'http://192.168.20.206:8000';
 
 interface ApiError extends Error {
   status?: number;

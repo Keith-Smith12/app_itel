@@ -1,5 +1,5 @@
 // app_itel/src/contexts/AuthContext.tsx
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { authService } from '../services/authService';
 
 interface User {
@@ -21,6 +21,7 @@ interface User {
   anoLectivo: string;
   turma: string;
   turno: string;
+  it_classeConclusao: number | null;
 }
 
 interface AuthContextData {
