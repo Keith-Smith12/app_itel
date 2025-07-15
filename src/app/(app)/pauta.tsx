@@ -15,16 +15,17 @@ export default function Pauta() {
   const [notas, setNotas] = useState<PautaFinalResponse['notas']>({});
 
   useEffect(() => {
+     console.log('Usuário atual:', user); 
     const fetchPauta = async () => {
       setLoading(true);
       setErro(null);
       try {
-        if (!user?.it_agent) {
+        if (!user?.processo) {
           setErro('Usuário não autenticado.');
           setLoading(false);
           return;
         }
-        const data = await PautaService.getPautaFinal(user.it_agent);
+        const data = await PautaService.getPautaFinal(user.processo);
         if (data.status === 0) {
           setErro('Pautas indisponíveis no momento.');
         } else {
@@ -45,8 +46,13 @@ export default function Pauta() {
     const aluno = alunos[0];
     return (
       <View style={styles.card}>
-        <ThemedText><b>Nome:</b> {aluno.vc_primeiroNome} {aluno.vc_nomedoMeio} {aluno.vc_ultimoaNome}</ThemedText>
-        <ThemedText><b>Processo:</b> {aluno.id}</ThemedText>
+        <ThemedText>
+          <ThemedText style={{ fontWeight: 'bold' }}>Nome:</ThemedText> {aluno.vc_primeiroNome} {aluno.vc_nomedoMeio} {aluno.vc_ultimoaNome}
+        </ThemedText>
+
+        <ThemedText>
+          <ThemedText style={{ fontWeight: 'bold' }}>Processo:</ThemedText> {aluno.id}
+        </ThemedText>
       </View>
     );
   };
@@ -92,20 +98,45 @@ export default function Pauta() {
           <ThemedText style={styles.cardTitle}>Instruções</ThemedText>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             <View style={{ flex: 2 }}>
-              <ThemedText><b>CA:</b> Classificação Anual</ThemedText>
-              <ThemedText><b>10ª:</b> Média da 10ª classe</ThemedText>
-              <ThemedText><b>11ª:</b> Média da 11ª classe</ThemedText>
-              <ThemedText><b>MAC:</b> Média das Avaliações Continuas</ThemedText>
-              <ThemedText><b>MT1:</b> Média do Primeiro Trimestre</ThemedText>
-              <ThemedText><b>MT2:</b> Média do Segundo Trimestre</ThemedText>
-              <ThemedText><b>MT3:</b> Média do Terceiro Trimestre</ThemedText>
-              <ThemedText><b>MFD:</b> Média Final da Disciplina</ThemedText>
-              <ThemedText><b>REC:</b> Nota do Recurso</ThemedText>
+              <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>CA:</ThemedText> Classificação Anual
+              </ThemedText>
+               <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>10ª:</ThemedText> Média da 10ª classe
+              </ThemedText>
+               <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>11ª:</ThemedText> Média da 11ª classe
+              </ThemedText>
+               <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>MAC:</ThemedText> Média das Avaliações Continuas
+              </ThemedText>
+              <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>MT1:</ThemedText> Média do Primeiro Trimestre
+              </ThemedText>
+               <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>MT2:</ThemedText> Média do Segundo Trimestre
+              </ThemedText>
+              <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>MT3:</ThemedText> Média do Terceiro Trimestre
+              </ThemedText>
+               <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>MFD:</ThemedText> Média Final da Disciplina
+              </ThemedText>
+               <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>REC:</ThemedText>  Nota do Recurso
+              </ThemedText>
             </View>
             <View style={{ flex: 1, marginLeft: 16 }}>
-              <ThemedText><b>TRANSITA:</b> Aprovou sem deixar cadeira</ThemedText>
-              <ThemedText><b>N/TRANSITA:</b> Não aprovou</ThemedText>
-              <ThemedText><b>?TRANSITA:</b> Aprovou deixando cadeiras</ThemedText>
+              <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>TRANSITA:</ThemedText>  Aprovou sem deixar cadeira
+              </ThemedText>
+              <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>N/TRANSITA:</ThemedText>  Não aprovou
+              </ThemedText>
+              <ThemedText>
+                <ThemedText style={{ fontWeight: 'bold' }}>?TRANSITA:</ThemedText>  Aprovou deixando cadeiras
+              </ThemedText>
+             
             </View>
           </View>
         </View>
