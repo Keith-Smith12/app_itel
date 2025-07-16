@@ -4,28 +4,29 @@ import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
 import { PautaCard } from '../../components/card/PautaCard';
-import { useAuth } from '../../contexts/AuthContext';
 import { AlunoPauta, PautaFinalResponse, PautaService } from '../../services/PautaService';
+import { authService, User } from '../../services/authService';
 
 export default function Pauta() {
-  const { user } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [alunos, setAlunos] = useState<AlunoPauta[]>([]);
   const [notas, setNotas] = useState<PautaFinalResponse['notas']>({});
 
   useEffect(() => {
-     console.log('Usuário atual:', user); 
-    const fetchPauta = async () => {
+    async function fetchUserAndPauta() {
       setLoading(true);
       setErro(null);
       try {
-        if (!user?.processo) {
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+        if (!currentUser?.processo) {
           setErro('Usuário não autenticado.');
           setLoading(false);
           return;
         }
-        const data = await PautaService.getPautaFinal(user.processo);
+        const data = await PautaService.getPautaFinal(currentUser.processo);
         if (data.status === 0) {
           setErro('Pautas indisponíveis no momento.');
         } else {
@@ -37,22 +38,17 @@ export default function Pauta() {
       } finally {
         setLoading(false);
       }
-    };
-    fetchPauta();
-  }, [user]);
+    }
+    fetchUserAndPauta();
+  }, []);
 
   const renderAluno = () => {
     if (alunos.length === 0) return null;
     const aluno = alunos[0];
     return (
       <View style={styles.card}>
-        <ThemedText>
-          <ThemedText style={{ fontWeight: 'bold' }}>Nome:</ThemedText> {aluno.vc_primeiroNome} {aluno.vc_nomedoMeio} {aluno.vc_ultimoaNome}
-        </ThemedText>
-
-        <ThemedText>
-          <ThemedText style={{ fontWeight: 'bold' }}>Processo:</ThemedText> {aluno.id}
-        </ThemedText>
+        <ThemedText>Nome: {aluno.vc_primeiroNome} {aluno.vc_nomedoMeio} {aluno.vc_ultimoaNome}</ThemedText>
+        <ThemedText>Processo: {aluno.id}</ThemedText>
       </View>
     );
   };
@@ -65,10 +61,7 @@ export default function Pauta() {
         </View>
       );
     }
-    // notas: Record<string, Record<string, NotaTrimestre & { resultado?: string }>>
-    // disciplina -> classe -> dados
     return Object.entries(notas).map(([disciplina, classes], idx) => {
-      // Pega a primeira classe disponível
       const [classe, dados] = Object.entries(classes)[0];
       return (
         <PautaCard
@@ -98,45 +91,20 @@ export default function Pauta() {
           <ThemedText style={styles.cardTitle}>Instruções</ThemedText>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             <View style={{ flex: 2 }}>
-              <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>CA:</ThemedText> Classificação Anual
-              </ThemedText>
-               <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>10ª:</ThemedText> Média da 10ª classe
-              </ThemedText>
-               <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>11ª:</ThemedText> Média da 11ª classe
-              </ThemedText>
-               <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>MAC:</ThemedText> Média das Avaliações Continuas
-              </ThemedText>
-              <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>MT1:</ThemedText> Média do Primeiro Trimestre
-              </ThemedText>
-               <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>MT2:</ThemedText> Média do Segundo Trimestre
-              </ThemedText>
-              <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>MT3:</ThemedText> Média do Terceiro Trimestre
-              </ThemedText>
-               <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>MFD:</ThemedText> Média Final da Disciplina
-              </ThemedText>
-               <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>REC:</ThemedText>  Nota do Recurso
-              </ThemedText>
+              <ThemedText>CA: Classificação Anual</ThemedText>
+              <ThemedText>10ª: Média da 10ª classe</ThemedText>
+              <ThemedText>11ª: Média da 11ª classe</ThemedText>
+              <ThemedText>MAC: Média das Avaliações Continuas</ThemedText>
+              <ThemedText>MT1: Média do Primeiro Trimestre</ThemedText>
+              <ThemedText>MT2: Média do Segundo Trimestre</ThemedText>
+              <ThemedText>MT3: Média do Terceiro Trimestre</ThemedText>
+              <ThemedText>MFD: Média Final da Disciplina</ThemedText>
+              <ThemedText>REC: Nota do Recurso</ThemedText>
             </View>
             <View style={{ flex: 1, marginLeft: 16 }}>
-              <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>TRANSITA:</ThemedText>  Aprovou sem deixar cadeira
-              </ThemedText>
-              <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>N/TRANSITA:</ThemedText>  Não aprovou
-              </ThemedText>
-              <ThemedText>
-                <ThemedText style={{ fontWeight: 'bold' }}>?TRANSITA:</ThemedText>  Aprovou deixando cadeiras
-              </ThemedText>
-             
+              <ThemedText>TRANSITA: Aprovou sem deixar cadeira</ThemedText>
+              <ThemedText>N/TRANSITA: Não aprovou</ThemedText>
+              <ThemedText>?TRANSITA: Aprovou deixando cadeiras</ThemedText>
             </View>
           </View>
         </View>

@@ -1,7 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
-import { authService } from './authService';
-
 
 // Interfaces para tipagem dos dados
 export interface NotaTrimestre {
@@ -38,7 +35,7 @@ export interface PautaFinalResponse {
 
 export class PautaService {
   // Buscar pauta final do estudante
-  /*static async getPautaFinal(processo: string): Promise<PautaFinalResponse> {
+  static async getPautaFinal(processo: string): Promise<PautaFinalResponse> {
     try {
       const response = await api.post<PautaFinalResponse>(
         '/api/aluno/pauta-final',
@@ -50,30 +47,6 @@ export class PautaService {
           },
         }
       );
-      return response;
-    } catch (error) {
-      console.error('Erro ao buscar pauta final:', error);
-      throw error;
-    }
-  }*/
-  static async getPautaFinal(processo: string): Promise<PautaFinalResponse> {
-    try {
-      const user = await authService.getCurrentUser();
-      if (!user?.processo) {
-        throw new Error('Usuário não autenticado ou processo não encontrado');
-      }
-
-      const response = await api.post<PautaFinalResponse>(
-        '/api/v2/aluno/pauta-final',
-        { processo },
-        {
-          headers: {
-            'Authorization': `Bearer ${user}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
       return response;
     } catch (error) {
       console.error('Erro ao buscar pauta final:', error);
