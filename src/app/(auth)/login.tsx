@@ -46,7 +46,7 @@ export default function LoginPage() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <View style={styles.formContainer}>
-          <Image source={require('../../../assets/images/ITEL_Logo.png')} style={styles.logo} />
+     { /*     <Image source={require('../../../assets/images/ITEL_Logo.png')} style={styles.logo} />*/}
           <Text style={styles.title}>Acessar</Text>
           <TextInput
             style={styles.input}

@@ -179,19 +179,7 @@ export default function Pauta() {
                       {resultadoGlobal}
                     </ThemedText>
                   </ThemedText>
-                )}
-               {mediaGlobal !== undefined && (
-                  <ThemedText style={{ textAlign: 'left', fontSize: 16, fontWeight: 'bold', color: '#000' }}>
-                    Média final: <ThemedText
-                      style={{
-                        fontWeight: 'bold',
-                        color: mediaGlobal < 10 ? '#FF3B30' : '#000',
-                      }}
-                    >
-                      {mediaGlobal}
-                    </ThemedText>
-                  </ThemedText>
-                )}
+                )}              
               </View>
             )}
              
