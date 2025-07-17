@@ -35,9 +35,9 @@ export default function LoginPage() {
 
   return (
     <LinearGradient
-      colors={['#001386', '#1441c4']}
-      start={{ x: 0.2, y: 0 }}
-      end={{ x: 0.8, y: 1 }}
+      colors={['#001386','#001386']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.0, y: 0 }}
       style={styles.gradient}
     >
       <KeyboardAvoidingView
@@ -46,8 +46,8 @@ export default function LoginPage() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <View style={styles.formContainer}>
-     { /*     <Image source={require('../../../assets/images/ITEL_Logo.png')} style={styles.logo} />*/}
-          <Text style={styles.title}>Acessar</Text>
+         
+          <Text style={styles.title}> <Image source={require('../../../assets/images/ITEL_Logo1.png')} style={styles.logo} /></Text>
           <TextInput
             style={styles.input}
             placeholder="Número do Processo"
@@ -56,7 +56,7 @@ export default function LoginPage() {
             keyboardType="numeric"
             autoCapitalize="none"
             editable={!loading}
-            placeholderTextColor="#40cfff"
+            placeholderTextColor="#001386"
           />
           <View style={styles.passwordContainer}>
             <TextInput
@@ -66,7 +66,7 @@ export default function LoginPage() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               editable={!loading}
-              placeholderTextColor="#40cfff"
+              placeholderTextColor="#001386"
             />
             <TouchableOpacity
               style={styles.eyeButton}
@@ -110,10 +110,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 18,
-    resizeMode: 'contain',
+    width: 180,
+    height: 50,
+   // resizeMode: 'contain',
   },
   title: {
     fontSize: 28,
@@ -130,12 +129,12 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     height: 48,
     borderWidth: 1.2,
-    borderColor: '#40cfff',
+    borderColor: 'white',
     borderRadius: 10,
     paddingHorizontal: 15,
     marginBottom: 14,
     fontSize: 16,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'white',
     color: '#fff',
   },
   passwordContainer: {
@@ -154,7 +153,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   button: {
-    backgroundColor: '#40cfff',
+    backgroundColor: '#1B68FF',
     width: 300,
     maxWidth: '100%',
     height: 48,
