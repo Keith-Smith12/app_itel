@@ -59,84 +59,58 @@ export function PautaCard({
     }
   };
 
-  return (
-    <View style={[styles.card, style]}>
-      <Text style={styles.subject}>{disciplina}</Text>
-      <View style={styles.gradeRow}>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>MT1:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(mt1) }]}>{formatGrade(mt1)}</Text>
-        </View>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>MT2:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(mt2) }]}>{formatGrade(mt2)}</Text>
-        </View>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>MT3:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(mt3) }]}>{formatGrade(mt3)}</Text>
-        </View>
-      </View>
-      <View style={styles.gradeRow}>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>CA:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(ca) }]}>{formatGrade(ca)}</Text>
-        </View>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>MFT:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(mft) }]}>{formatGrade(mft)}</Text>
-        </View>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>MFD:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(mfd) }]}>{formatGrade(mfd)}</Text>
-        </View>
-      </View>
-      <View style={styles.gradeRow}>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>CFD:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(cfd) }]}>{formatGrade(cfd)}</Text>
-        </View>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>REC:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(rec) }]}>{formatGrade(rec)}</Text>
-        </View>
-        <View style={styles.gradeItem}>
-          <Text style={styles.label}>EX:</Text>
-          <Text style={[styles.grade, { color: getGradeColor(ex) }]}>{formatGrade(ex)}</Text>
-        </View>
-      </View>
-      {outrosAnos && Array.isArray(outrosAnos) && outrosAnos.length > 0 && (
-        <View style={styles.gradeRow}>
-          {outrosAnos.map((anoObj, idx) => {
-            const [ano, valor] = Object.entries(anoObj)[0];
-            return (
-              <View style={styles.gradeItem} key={ano}>
-                <Text style={styles.label}>{ano}:</Text>
-                <Text style={[styles.grade, { color: getGradeColor(valor as string | number) }]}>{formatGrade(valor as string | number)}</Text>
-              </View>
-            );
-          })}
-        </View>
-      )}
-      {outrosAnos && !Array.isArray(outrosAnos) && (
-        <View style={styles.gradeRow}>
-          {Object.entries(outrosAnos).map(([ano, valor]) => (
-            <View style={styles.gradeItem} key={ano}>
-              <Text style={styles.label}>{ano}:</Text>
-              <Text style={[styles.grade, { color: getGradeColor(valor as string | number) }]}>{formatGrade(valor as string | number)}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-      {resultado && (
-        <View style={styles.resultadoContainer}>
-          <Text style={[styles.resultado, { color: getResultadoColor(resultado) }]}>
-            {resultado}
-          </Text>
-        </View>
-      )}
+  const hasValidGrade = (grade: number | string | undefined) => {
+    return grade !== undefined && grade !== null && grade !== '';
+  };
+
+  const GradeItem = ({ label, value }: { label: string; value: number | string }) => (
+  <View style={styles.gradeItem}>
+    <Text style={styles.label}>{label}:</Text>
+    <Text style={[styles.grade, { color: getGradeColor(value) }]}>{formatGrade(value)}</Text>
+  </View>
+);
+
+
+return (
+  <View style={[styles.card, style]}>
+    <Text style={styles.subject}>{disciplina}</Text>
+
+    {/* Linha 1: MT1, MT2, MT3, MFT */}
+    <View style={styles.gradeRow}>
+      {hasValidGrade(mt1) && <GradeItem label="MT1" value={mt1 ||'-'} />}
+      {hasValidGrade(mt2) && <GradeItem label="MT2" value={mt2 ||'-'} />}
+      {hasValidGrade(mt3) && <GradeItem label="MT3" value={mt3 ||'-'} />}
+      {hasValidGrade(mft) && <GradeItem label="MFT" value={mft ||'-'} />}
     </View>
-  );
+
+    {/* Linha 2: MFD, CA, CFD, 10ª */}
+    <View style={styles.gradeRow}>
+      {hasValidGrade(mfd) && <GradeItem label="MFD" value={mfd ||'-'} />}
+      {hasValidGrade(ca) && <GradeItem label="CA" value={ca ||'-'} />}
+      {hasValidGrade(cfd) && <GradeItem label="CFD" value={cfd ||'-'} />}
+      {outrosAnos?.['10'] && <GradeItem label="10ª" value={outrosAnos['10'] ||'-'} />}
+    </View>
+
+    {/* Linha 3: 11ª, REC, EX */}
+    <View style={styles.gradeRow}>
+      {outrosAnos?.['11'] && <GradeItem label="11ª" value={outrosAnos['11'] ||'-'} />}
+      {hasValidGrade(rec) && <GradeItem label="REC" value={rec ||'-'} />}
+      {hasValidGrade(ex) && <GradeItem label="EX" value={ex ||'-'} />}
+    </View>
+
+    {/* Resultado final */}
+    {resultado && (
+      <View style={styles.resultadoContainer}>
+        <Text style={[styles.resultado, { color: getResultadoColor(resultado) }]}>
+          {resultado}
+        </Text>
+      </View>
+    )}
+  </View>
+);
+
 }
+
 
 const styles = StyleSheet.create({
   card: {

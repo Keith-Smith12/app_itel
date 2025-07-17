@@ -180,7 +180,7 @@ export default function Pauta() {
                     </ThemedText>
                   </ThemedText>
                 )}
-                {mediaGlobal !== undefined && (
+               {mediaGlobal !== undefined && (
                   <ThemedText style={{ textAlign: 'left', fontSize: 16, fontWeight: 'bold', color: '#000' }}>
                     Média final: <ThemedText
                       style={{
@@ -194,7 +194,8 @@ export default function Pauta() {
                 )}
               </View>
             )}
-          </>
+             
+          </>  
         )}
       </ScrollView>
     </ThemedView>
