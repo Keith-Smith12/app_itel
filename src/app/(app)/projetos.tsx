@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Header } from '../../components/Header';
@@ -7,7 +8,6 @@ import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
 import { useAuth } from '../../contexts/AuthContext';
 import propostaService from '../../services/propostaService';
-import { useRouter } from 'expo-router';
 
 interface PropostaProjecto {
   [key: string]: any;
@@ -50,9 +50,6 @@ export default function Projetos() {
   const [candidatarLoading, setCandidatarLoading] = useState(false);
   const [candidatarSuccess, setCandidatarSuccess] = useState(false);
   const [candidatarError, setCandidatarError] = useState<string|null>(null);
-  const [jaCandidatou, setJaCandidatou] = useState(false);
-  const [podeCandidatar, setPodeCandidatar] = useState(true);
-  const [jaCarregou, setJaCarregou] = useState(false);
 
   // Carregar projetos e propostas ao abrir a tela
   useEffect(() => {
@@ -69,7 +66,10 @@ export default function Projetos() {
 
   const carregarProjetos = async () => {
     try {
-      if (!jaCarregou) setLoading(true);
+      if (!authLoading && user && user.it_classeConclusao === null) {
+        alert('Meu amigo, voce ainda não chegou la');
+        router.replace('/(app)/home');
+      }
       setError(null);
       const [propostasList, projetosList] = await Promise.all([
         propostaService.listarPropostasProjectos(),
@@ -77,7 +77,6 @@ export default function Projetos() {
       ]);
       setPropostas(propostasList);
       setProjetosDisponiveis(projetosList);
-      setJaCarregou(true);
     } catch (err) {
       setError('Erro ao carregar projetos');
     } finally {
@@ -161,24 +160,6 @@ export default function Projetos() {
     </TouchableOpacity>
   );
 
-  // Verifica se o usuário já se candidatou e se pode se candidatar ao abrir o modal de detalhes
-  useEffect(() => {
-    if (modalDetalheVisible && projetoSelecionado && user) {
-      setCandidatarSuccess(false);
-      setCandidatarError(null);
-      setCandidatarLoading(false);
-      setPodeCandidatar(true);
-      propostaService.jaSeCandidatou(user.processo)
-        .then((res) => {
-          setJaCandidatou(!!res && res[projetoSelecionado.id]);
-        })
-        .catch(() => setJaCandidatou(false));
-      propostaService.permissaoCandidatar()
-        .then((res) => setPodeCandidatar(res))
-        .catch(() => setPodeCandidatar(false));
-    }
-  }, [modalDetalheVisible, projetoSelecionado, user]);
-
   const handleCandidatar = async () => {
     if (!user || !projetoSelecionado) return;
     setCandidatarLoading(true);
@@ -191,7 +172,6 @@ export default function Projetos() {
         it_idPropostaProjecto: projetoSelecionado.id?.toString() || '',
       });
       setCandidatarSuccess(true);
-      setJaCandidatou(true);
     } catch (err) {
       setCandidatarError('Erro ao candidatar-se. Tente novamente.');
     } finally {
@@ -201,12 +181,6 @@ export default function Projetos() {
 
   // Função auxiliar para garantir apenas elementos React válidos no Fragment
   function renderCandidatarOptions() {
-    if (!podeCandidatar) {
-      return <ThemedText style={styles.errorText}>Você não tem permissão para se candidatar a este projeto.</ThemedText>;
-    }
-    if (jaCandidatou) {
-      return <ThemedText style={styles.successText}>Você já se candidatou a este projeto.</ThemedText>;
-    }
     if (projetoSelecionado?.it_estado_candidatura === 0) {
       return <ThemedText style={styles.errorText}>Candidatura indisponível para este projeto.</ThemedText>;
     }
@@ -219,21 +193,6 @@ export default function Projetos() {
         <ThemedText style={{ color: '#fff' }}>{candidatarLoading ? 'Enviando...' : 'Candidatar-se'}</ThemedText>
       </Pressable>
     );
-  }
-
-  // Debug log para saber o motivo do botão não aparecer
-  if (projetoSelecionado?.id && user) {
-    console.log('[DEBUG] Candidatar:', {
-      podeCandidatar,
-      jaCandidatou,
-      it_estado_candidatura: projetoSelecionado?.it_estado_candidatura,
-      user: user.processo,
-      projetoId: projetoSelecionado?.id
-    });
-  }
-
-  if (!user || user.it_classeConclusao === null) {
-    return null;
   }
 
   return (

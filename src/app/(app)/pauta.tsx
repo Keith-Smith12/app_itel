@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Header } from '../../components/Header';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
@@ -7,12 +7,34 @@ import { PautaCard } from '../../components/card/PautaCard';
 import { AlunoPauta, PautaFinalResponse, PautaService } from '../../services/PautaService';
 import { authService, User } from '../../services/authService';
 
+// Função para transformar o array de notas em objeto por disciplina
+function transformarNotas(notasArray: any[]): { notas: Record<string, any>, resultado?: string, media?: number } {
+  const notasObj: Record<string, any> = {};
+  let resultado: string | undefined;
+  let media: number | undefined;
+
+  notasArray.forEach((item) => {
+    const [key, valores] = Object.entries(item)[0];
+    if (key === 'resultado') {
+      resultado = valores as string;
+    } else if (key === 'media') {
+      media = valores as number;
+    } else {
+      notasObj[key] = { "default": (valores as any[])[0] };
+    }
+  });
+
+  return { notas: notasObj, resultado, media };
+}
+
 export default function Pauta() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [alunos, setAlunos] = useState<AlunoPauta[]>([]);
   const [notas, setNotas] = useState<PautaFinalResponse['notas']>({});
+  const [resultadoGlobal, setResultadoGlobal] = useState<string | undefined>(undefined);
+  const [mediaGlobal, setMediaGlobal] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     async function fetchUserAndPauta() {
@@ -26,12 +48,27 @@ export default function Pauta() {
           setLoading(false);
           return;
         }
+        // Supondo que data seja a resposta do novo formato
         const data = await PautaService.getPautaFinal(currentUser.processo);
         if (data.status === 0) {
           setErro('Pautas indisponíveis no momento.');
         } else {
-          setAlunos(data.alunos);
-          setNotas(data.notas);
+          // Adaptação para novo formato:
+          if (data.alunos && typeof data.alunos === 'object') {
+            setAlunos([(data.alunos as any)[Object.keys(data.alunos)[0]]]);
+          } else {
+            setAlunos([]);
+          }
+          if (Array.isArray(data.notas)) {
+            const { notas, resultado, media } = transformarNotas(data.notas);
+            setNotas(notas);
+            setResultadoGlobal(resultado);
+            setMediaGlobal(media);
+          } else {
+            setNotas({});
+            setResultadoGlobal(undefined);
+            setMediaGlobal(undefined);
+          }
         }
       } catch (e) {
         setErro('Erro ao buscar pauta.');
@@ -47,8 +84,8 @@ export default function Pauta() {
     const aluno = alunos[0];
     return (
       <View style={styles.card}>
-        <ThemedText>Nome: {aluno.vc_primeiroNome} {aluno.vc_nomedoMeio} {aluno.vc_ultimoaNome}</ThemedText>
-        <ThemedText>Processo: {aluno.id}</ThemedText>
+        <ThemedText><Text style={{fontWeight: 'bold'}}>Nome:</Text> {aluno.vc_primeiroNome} {aluno.vc_nomedoMeio} {aluno.vc_ultimoaNome}</ThemedText>
+        <ThemedText><Text style={{fontWeight: 'bold'}}>Processo:</Text> {aluno.id}</ThemedText>
       </View>
     );
   };
@@ -62,13 +99,14 @@ export default function Pauta() {
       );
     }
     return Object.entries(notas).map(([disciplina, classes], idx) => {
-      const [classe, dados] = Object.entries(classes)[0];
+      // Aqui, "classes" é um objeto com chave "default"
+      const dados = classes["default"];
       return (
         <PautaCard
-          key={disciplina + classe + idx}
+          key={disciplina + idx}
           disciplina={disciplina}
           {...dados}
-          resultado={dados.resultado}
+          resultado={dados?.resultado}
         />
       );
     });
@@ -81,7 +119,7 @@ export default function Pauta() {
   return (
     <ThemedView style={styles.container}>
       <Header
-        title="Pauta"
+        title=""
         showBackButton={false}
         onMenuPress={handleMenuPress}
       />
@@ -91,20 +129,20 @@ export default function Pauta() {
           <ThemedText style={styles.cardTitle}>Instruções</ThemedText>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             <View style={{ flex: 2 }}>
-              <ThemedText>CA: Classificação Anual</ThemedText>
-              <ThemedText>10ª: Média da 10ª classe</ThemedText>
-              <ThemedText>11ª: Média da 11ª classe</ThemedText>
-              <ThemedText>MAC: Média das Avaliações Continuas</ThemedText>
-              <ThemedText>MT1: Média do Primeiro Trimestre</ThemedText>
-              <ThemedText>MT2: Média do Segundo Trimestre</ThemedText>
-              <ThemedText>MT3: Média do Terceiro Trimestre</ThemedText>
-              <ThemedText>MFD: Média Final da Disciplina</ThemedText>
-              <ThemedText>REC: Nota do Recurso</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>CA:</Text> Classificação Anual</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>10ª:</Text> Média da 10ª classe</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>11ª:</Text> Média da 11ª classe</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>MAC:</Text> Média das Avaliações Continuas</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>MT1:</Text> Média do Primeiro Trimestre</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>MT2:</Text> Média do Segundo Trimestre</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>MT3:</Text> Média do Terceiro Trimestre</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>MFD:</Text> Média Final da Disciplina</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>REC:</Text> Nota do Recurso</ThemedText>
             </View>
             <View style={{ flex: 1, marginLeft: 16 }}>
-              <ThemedText>TRANSITA: Aprovou sem deixar cadeira</ThemedText>
-              <ThemedText>N/TRANSITA: Não aprovou</ThemedText>
-              <ThemedText>?TRANSITA: Aprovou deixando cadeiras</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>TRANSITA:</Text> Aprovou sem deixar cadeira</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>N/TRANSITA:</Text> Não aprovou</ThemedText>
+              <ThemedText><Text style={{fontWeight: 'bold'}}>?TRANSITA:</Text> Aprovou deixando cadeiras</ThemedText>
             </View>
           </View>
         </View>
@@ -120,7 +158,43 @@ export default function Pauta() {
             <ThemedText style={{ color: 'red', textAlign: 'center' }}>{erro}</ThemedText>
           </View>
         ) : (
-          renderPautas()
+          <>
+            {renderPautas()}
+            {/* Exibir resultado e média globais, se existirem */}
+            {(resultadoGlobal || mediaGlobal !== undefined) && (
+              <View style={styles.card}>
+                {resultadoGlobal && (
+                  <ThemedText style={{ fontWeight: 'bold', textAlign: 'left', fontSize: 16, color: '#000' }}>
+                    Resultado final: <ThemedText
+                      style={{
+                        fontWeight: 'bold',
+                        color:
+                          resultadoGlobal === 'TRANSITA'
+                            ? '#007AFF'
+                            : resultadoGlobal === 'N/TRANSITA' || resultadoGlobal === '?TRANSITA'
+                            ? '#FF3B30'
+                            : '#000',
+                      }}
+                    >
+                      {resultadoGlobal}
+                    </ThemedText>
+                  </ThemedText>
+                )}
+                {mediaGlobal !== undefined && (
+                  <ThemedText style={{ textAlign: 'left', fontSize: 16, fontWeight: 'bold', color: '#000' }}>
+                    Média final: <ThemedText
+                      style={{
+                        fontWeight: 'bold',
+                        color: mediaGlobal < 10 ? '#FF3B30' : '#000',
+                      }}
+                    >
+                      {mediaGlobal}
+                    </ThemedText>
+                  </ThemedText>
+                )}
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
     </ThemedView>

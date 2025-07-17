@@ -104,12 +104,25 @@ export function PautaCard({
           <Text style={[styles.grade, { color: getGradeColor(ex) }]}>{formatGrade(ex)}</Text>
         </View>
       </View>
-      {outrosAnos && (
+      {outrosAnos && Array.isArray(outrosAnos) && outrosAnos.length > 0 && (
+        <View style={styles.gradeRow}>
+          {outrosAnos.map((anoObj, idx) => {
+            const [ano, valor] = Object.entries(anoObj)[0];
+            return (
+              <View style={styles.gradeItem} key={ano}>
+                <Text style={styles.label}>{ano}:</Text>
+                <Text style={[styles.grade, { color: getGradeColor(valor as string | number) }]}>{formatGrade(valor as string | number)}</Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
+      {outrosAnos && !Array.isArray(outrosAnos) && (
         <View style={styles.gradeRow}>
           {Object.entries(outrosAnos).map(([ano, valor]) => (
             <View style={styles.gradeItem} key={ano}>
               <Text style={styles.label}>{ano}:</Text>
-              <Text style={[styles.grade, { color: getGradeColor(valor) }]}>{formatGrade(valor)}</Text>
+              <Text style={[styles.grade, { color: getGradeColor(valor as string | number) }]}>{formatGrade(valor as string | number)}</Text>
             </View>
           ))}
         </View>

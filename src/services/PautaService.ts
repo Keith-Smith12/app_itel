@@ -1,4 +1,5 @@
 import api from './api';
+import { authService } from './authService';
 
 // Interfaces para tipagem dos dados
 export interface NotaTrimestre {
@@ -37,12 +38,16 @@ export class PautaService {
   // Buscar pauta final do estudante
   static async getPautaFinal(processo: string): Promise<PautaFinalResponse> {
     try {
+      const token = await authService.getToken();
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado.');
+      }
       const response = await api.post<PautaFinalResponse>(
-        '/api/aluno/pauta-final',
+        '/api/v2/aluno/pauta-final',
         { processo },
         {
           headers: {
-            'Authorization': 'Basic d3MuYWRtY2F6ZW5nYTptZm4zNDYwODIwMjI=',
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }
