@@ -4,6 +4,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { authService } from '../../services/authService';
+import FloatingIconsBackground from '../../components/FloatingIconsBackground';
+import React from 'react';
 
 export default function LoginPage() {
   const [processo, setProcesso] = useState('');
@@ -34,11 +36,15 @@ export default function LoginPage() {
   };
 
   return (
+    <View style={{ flex: 1 }}>
+    <FloatingIconsBackground />
+
     <LinearGradient
-      colors={['#001386','#001386']}
+      colors={['#0c0d13ff','#001386']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0.0, y: 0 }}
       style={styles.gradient}
+       
     >
       <KeyboardAvoidingView
         style={{ flex: 1, width: '100%' }}
@@ -47,7 +53,10 @@ export default function LoginPage() {
       >
         <View style={styles.formContainer}>
          
-          <Text style={styles.title}> <Image source={require('../../../assets/images/ITEL_Logo1.png')} style={styles.logo} /></Text>
+          <View style={styles.logoContainer}> 
+          <Image source={require('../../../assets/images/ITEL_Logo1.png')} style={styles.logo} />
+          <Text style={styles.subtitle}> Ambiente Virtual do ITEL</Text>
+          </View>
           <TextInput
             style={styles.input}
             placeholder="Número do Processo"
@@ -76,7 +85,9 @@ export default function LoginPage() {
               <MaterialCommunityIcons
                 name={showPassword ? 'eye-off' : 'eye'}
                 size={24}
-                color="#b0c4de"
+                color="#001386
+                
+                "
               />
             </TouchableOpacity>
           </View>
@@ -95,12 +106,15 @@ export default function LoginPage() {
         </View>
       </KeyboardAvoidingView>
     </LinearGradient>
+    </View>
+
   );
 }
 
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
+      
   },
   formContainer: {
     flex: 1,
@@ -135,7 +149,8 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     fontSize: 16,
     backgroundColor: 'white',
-    color: '#fff',
+    color: '#171717',
+    
   },
   passwordContainer: {
     width: 300,
@@ -166,6 +181,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 6,
     elevation: 4,
+    zIndex: 2, 
   },
   buttonDisabled: {
     backgroundColor: '#e3eaf2',
@@ -175,5 +191,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.5,
+
   },
+
+  logoContainer: {
+  alignItems: 'center',
+  marginBottom: 22, // controla o espaçamento geral abaixo
+  zIndex: 2, 
+},
+subtitle: {
+  marginTop: 6, // controla o espaçamento entre imagem e texto
+  fontSize: 14,
+  color: '#fff',
+  textAlign: 'center',
+},
 });

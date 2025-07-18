@@ -139,8 +139,8 @@ export default function Pauta() {
               <ThemedText><Text style={{fontWeight: 'bold'}}>MFD:</Text> Média Final da Disciplina</ThemedText>
               <ThemedText><Text style={{fontWeight: 'bold'}}>REC:</Text> Nota do Recurso</ThemedText>
             </View>
-            <View style={{ flex: 1, marginLeft: 16 }}>
-              <ThemedText><Text style={{fontWeight: 'bold'}}>TRANSITA:</Text> Aprovou sem deixar cadeira</ThemedText>
+            <View style={{ flex: 1, marginLeft: 16}}>
+              <ThemedText><Text style={{fontWeight: 'bold' }}>TRANSITA:</Text> Aprovou sem deixar cadeira</ThemedText>
               <ThemedText><Text style={{fontWeight: 'bold'}}>N/TRANSITA:</Text> Não aprovou</ThemedText>
               <ThemedText><Text style={{fontWeight: 'bold'}}>?TRANSITA:</Text> Aprovou deixando cadeiras</ThemedText>
             </View>
